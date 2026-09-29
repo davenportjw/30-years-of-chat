@@ -1865,7 +1865,7 @@ class _MemoryArchitectureDrawerState extends State<MemoryArchitectureDrawer>
             return 'Bilateral Model Inference';
         }
         break;
-      case 'era-2006-campfire':
+      case 'era-2006-jabber':
         switch (step.stepNumber) {
           case 1:
             return 'Perimeter Domain Scoping';
@@ -1877,7 +1877,7 @@ class _MemoryArchitectureDrawerState extends State<MemoryArchitectureDrawer>
             return 'Fenced Context Assembly';
         }
         break;
-      case 'era-2013-slack':
+      case 'era-2013-hipchat':
         switch (step.stepNumber) {
           case 1:
             return 'Durable Event Logging';
@@ -1943,7 +1943,7 @@ class _MemoryArchitectureDrawerState extends State<MemoryArchitectureDrawer>
             return 'Restricts generation context strictly to the 1:1 conversation history.';
         }
         break;
-      case 'era-2006-campfire':
+      case 'era-2006-jabber':
         switch (step.stepNumber) {
           case 1:
             return 'Partitions interactions into room channels with independent conversational contexts.';
@@ -1955,7 +1955,7 @@ class _MemoryArchitectureDrawerState extends State<MemoryArchitectureDrawer>
             return 'Injects verified room topic, policy, and history into the generation prompt.';
         }
         break;
-      case 'era-2013-slack':
+      case 'era-2013-hipchat':
         switch (step.stepNumber) {
           case 1:
             return 'Persists all interaction turns to append-only cloud storage with commit timestamps.';

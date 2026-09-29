@@ -1,7 +1,7 @@
-"""E2E Integration Tests for Scene 3 (2006 — Scoped Rooms & Context Fencing: Campfire & Jabber).
+"""E2E Integration Tests for Scene 3 (2006 — Scoped Rooms & Context Fencing: Jabber & Scoped Rooms).
 
 Architectural Invariants Verified on Deployed Cloud Run Service:
-- Project-Scoped Multi-User Rooms (chan-2006-campfire-lobby, chan-2006-campfire-eng, chan-2006-campfire)
+- Project-Scoped Multi-User Rooms (chan-2006-jabber-lobby, chan-2006-jabber-eng, chan-2006-jabber-billing)
 - Domain-Partitioned Memory Silos: Search Isolation & Context Fencing
 - Role Quarantine Invariant: researcher-agent quarantined from confidential billing room
 - Associative Bleed Prevention: Engineering room discussions do not bleed into billing room
@@ -12,10 +12,10 @@ import json
 import pytest
 import httpx
 
-LOBBY_CHANNEL = "chan-2006-campfire-lobby"
-ENG_CHANNEL = "chan-2006-campfire-eng"
-BILLING_CHANNEL = "chan-2006-campfire"
-ERA_ID = "era-2006-campfire"
+LOBBY_CHANNEL = "chan-2006-jabber-lobby"
+ENG_CHANNEL = "chan-2006-jabber-eng"
+BILLING_CHANNEL = "chan-2006-jabber-billing"
+ERA_ID = "era-2006-jabber"
 
 
 @pytest.mark.asyncio
@@ -25,20 +25,20 @@ async def test_scene_2006_room_scoping_and_role_fencing(client: httpx.AsyncClien
     assert resp.status_code == 200
     channels = resp.json()
 
-    campfire_channels = [c for c in channels if c.get("era_id") == ERA_ID]
-    assert len(campfire_channels) == 3
+    jabber_channels = [c for c in channels if c.get("era_id") == ERA_ID]
+    assert len(jabber_channels) == 3
 
     # Lobby room is open without restricted roles
-    lobby = next(c for c in campfire_channels if c["id"] == LOBBY_CHANNEL)
+    lobby = next(c for c in jabber_channels if c["id"] == LOBBY_CHANNEL)
     assert len(lobby.get("allowed_roles") or []) == 0 or "jason" in (lobby.get("allowed_roles") or [])
     assert lobby["retention_hours"] == 48
 
     # Engineering room allows engineering roster
-    eng = next(c for c in campfire_channels if c["id"] == ENG_CHANNEL)
+    eng = next(c for c in jabber_channels if c["id"] == ENG_CHANNEL)
     assert set(eng.get("allowed_roles", [])) == {"lead-agent", "scribe-agent", "researcher-agent", "jason"}
 
     # Confidential billing room enforces RBAC quarantine
-    billing = next(c for c in campfire_channels if c["id"] == BILLING_CHANNEL)
+    billing = next(c for c in jabber_channels if c["id"] == BILLING_CHANNEL)
     assert set(billing.get("allowed_roles", [])) == {"lead-agent", "scribe-agent", "jason"}
 
     # Context Quarantine Invariant: researcher-agent is strictly excluded from billing
@@ -60,7 +60,7 @@ async def test_scene_2006_context_fencing_associative_bleed_prevention(client: h
         f"/api/channels/{ENG_CHANNEL}/messages",
         json={
             "content": eng_content,
-            "sender_name": "Campfire Eng Lead",
+            "sender_name": "Jabber Eng Lead",
         },
     )
     assert post_resp.status_code in [200, 201]

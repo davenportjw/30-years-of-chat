@@ -199,6 +199,18 @@ def run_demo(base_url: str, channel_id: str, auto_mode: bool):
         else:
             print(f"{YELLOW}⚠️ Agent reply timed out, continuing...{RESET}")
 
+        # Poll for delegated swarm replies called by Lead Coordinator
+        print(f"\n{DIM}Monitoring swarm delegation to @researcher and @scribe...{RESET}")
+        time.sleep(2.5)
+        swarm_resp = client.get(f"/api/channels/{channel_id}/messages?limit=10")
+        if swarm_resp.status_code == 200:
+            for s_msg in reversed(swarm_resp.json()):
+                if s_msg.get("sender_type") == "agent" and s_msg.get("id") != (agent_reply_1 or {}).get("id"):
+                    s_sender = s_msg.get("sender_name", "")
+                    s_content = s_msg.get("content", "").strip()
+                    print(f"\n{CYAN}{BOLD}[Swarm Delegate — {s_sender}]:{RESET}")
+                    print(f"  {s_content}")
+
         wait_step(2.5, auto_mode)
 
         # =====================================================================

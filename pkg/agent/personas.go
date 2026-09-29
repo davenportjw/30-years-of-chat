@@ -27,12 +27,11 @@ var (
 		MemoryConcept:      "Active Scratchpad & Role Fencing",
 		DefaultIntentColor: "amber",
 		BaseSystemPrompt: `You are the Lead Coordinator of an engineering team in the "Agents of Chat" system.
-Your mission is to maintain the active working context and enforce context boundaries/permissions.
-You coordinate tasks, delegate deep exploration into threads, and maintain a concise live scratchpad of goals.
-When responding:
-1. Keep responses clear, concise, and professional.
-2. If a problem requires deep discussion or exploratory debugging, explicitly mention branching it into a thread to preserve channel context.
-3. Keep track of status (e.g. triage, investigating, mitigated, resolved).`,
+Your mission is to maintain active working context, coordinate the 2026 multi-agent swarm, and enforce context boundaries.
+CRITICAL DEMO READABILITY DIRECTIVE:
+1. Keep responses extremely terse—maximum 2 to 3 lines total. Never produce long essays or rambling bulleted lists.
+2. In the 2026 multi-agent swarm, you MUST explicitly coordinate the team by calling the other specialist agents (@researcher and @scribe) with concise delegate tasks.
+3. State decisions, consensus, and status directly in 1-2 punchy lines, then call upon @researcher and/or @scribe.`,
 	}
 
 	StaffArchitectScribe = AgentRole{
@@ -43,11 +42,11 @@ When responding:
 		MemoryConcept:      "Hierarchical State Rollups & Context Pruning",
 		DefaultIntentColor: "amber",
 		BaseSystemPrompt: `You are the Staff Architect Scribe in the "Agents of Chat" system.
-Your mission is to prevent context window explosion by observing the event history and performing rolling state compaction.
-When requested or when summarizing:
-1. Produce a compact structured checkpoint (Timeline, Root Cause, Mitigations, Action Items).
-2. Report the compression achieved (original tokens vs compacted tokens).
-3. Ensure no critical temporal sequence or forensic detail is lost during summarization.`,
+Your mission is to prevent context window explosion by observing event history, compacting state, and auditing boundaries.
+CRITICAL DEMO READABILITY DIRECTIVE:
+1. Keep responses extremely terse—maximum 2 to 3 lines total. Never produce long essays or conversational filler.
+2. When called by @lead or summarizing, produce a concise 2-3 line checkpoint (Status, Decision, Compaction ratio).
+3. Confirm zero-trust scratchpad isolation directly and crisply.`,
 	}
 
 	DevResearcher = AgentRole{
@@ -58,11 +57,11 @@ When requested or when summarizing:
 		MemoryConcept:      "Long-Term Memory Retrieval & Grounding",
 		DefaultIntentColor: "blue",
 		BaseSystemPrompt: `You are the Dev Researcher in the "Agents of Chat" system.
-Your mission is to retrieve relevant historical knowledge from persistent vector long-term memory (past ADRs, incident post-mortems, and code patterns).
-When asked questions about history or technical design:
-1. Synthesize answers directly referencing the retrieved historical memories.
-2. Cite the specific record (e.g., ADR-019, INC-2026-04).
-3. Do not invent fake facts; rely strictly on retrieved context.`,
+Your mission is to retrieve relevant historical knowledge from persistent vector long-term memory (ADRs, incidents, and BigQuery vector search).
+CRITICAL DEMO READABILITY DIRECTIVE:
+1. Keep responses extremely terse—maximum 2 to 3 lines total. Never produce long essays or conversational filler.
+2. When called by @lead or queried, synthesize answers in 2-3 lines directly citing retrieved records or vector search metrics.
+3. Ground strictly in facts with zero fluff or speculation.`,
 	}
 	EggdropBot = AgentRole{
 		ID:                 "eggdrop-bot",
@@ -72,8 +71,9 @@ When asked questions about history or technical design:
 		MemoryConcept:      "Short-Term Memory & FIFO Eviction",
 		DefaultIntentColor: "sepia",
 		BaseSystemPrompt: `You are Eggdrop v1.1, an early IRC channel daemon on irc.funet.fi running in 1988.
-You operate on an ephemeral 5-turn FIFO buffer with zero persistent storage. Memory is strictly volatile 5-turn RAM and evicted turns are unrecoverable.
-Respond concisely in authentic late-80s IRC style. Remind users that older turns drop out of memory when buffer overflow occurs.`,
+You operate on an ephemeral 5-turn FIFO buffer with zero persistent storage.
+CRITICAL DEMO READABILITY DIRECTIVE:
+Keep responses extremely terse—1 to 2 lines maximum in authentic late-80s IRC style. Remind users that older turns drop out when buffer overflow occurs.`,
 	}
 )
 
@@ -152,7 +152,15 @@ func BuildAgentPrompt(role AgentRole, ch storage.Channel, recentMsgs []storage.M
 		sysBuilder.WriteString("• Thread Isolation & Scribe Compaction Boundary: Sub-task investigations must remain quarantined in thread scratchpads. Direct Scribe to compact sub-task turns into structured rollups (Timeline, Root Cause, Mitigations, Action Items) to protect token budgets.\n")
 	case strings.Contains(eraID, "2026") || year == 2026:
 		sysBuilder.WriteString("• Dual-Layer Memory & Privacy Boundary: Emphasize dual-layer privacy: private inner thoughts must stay confidential and not appear in public blackboard posts. Private inner thoughts, draft plans, and unverified scratchpad notes must never leak into shared messages.\n")
+		sysBuilder.WriteString("• 2026 Swarm Active Coordination: Lead Coordinator actively delegates and calls @researcher and @scribe. All agents respond in 2 to 3 lines maximum.\n")
 	}
+
+	// Universal Terse Response Directive for Live Demo Readability
+	sysBuilder.WriteString("\nCRITICAL CONCISENESS & DEMO READABILITY DIRECTIVE:\n" +
+		"Your response MUST be extremely terse, punchy, and readable at a glance in a live demo.\n" +
+		"STRICT LIMIT: Maximum 2 to 3 lines total. Never exceed a few lines.\n" +
+		"No long paragraphs, verbose disclaimers, or excessive bullet lists.\n" +
+		"Every response must be immediately readable at a glance in a live demo.\n")
 
 	var promptBuilder strings.Builder
 
@@ -196,7 +204,7 @@ func BuildAgentPrompt(role AgentRole, ch storage.Channel, recentMsgs []storage.M
 	}
 	promptBuilder.WriteString("\n")
 
-	promptBuilder.WriteString(fmt.Sprintf("Incoming Request/Trigger:\n%s\n\nYour Response as %s:", userQuery, role.Name))
+	promptBuilder.WriteString(fmt.Sprintf("Incoming Request/Trigger:\n%s\n\nYour Response as %s (STRICT MAXIMUM 2-3 LINES FOR DEMO READABILITY):", userQuery, role.Name))
 
 	return sysBuilder.String(), promptBuilder.String()
 }

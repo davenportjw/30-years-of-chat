@@ -80,8 +80,8 @@ async def test_deployed_taxonomy_eras(client: httpx.AsyncClient):
     expected_eras = [
         (1988, "era-1988-irc"),
         (1997, "era-1997-aim"),
-        (2006, "era-2006-campfire"),
-        (2013, "era-2013-slack"),
+        (2006, "era-2006-jabber"),
+        (2013, "era-2013-hipchat"),
         (2017, "era-2017-threads"),
         (2026, "era-2026-agent-mesh"),
     ]
@@ -107,9 +107,9 @@ async def test_deployed_domain_channels(client: httpx.AsyncClient):
         "chan-1997-aim",
         "chan-1997-aim-scribe",
         "chan-1997-aim-researcher",
-        "chan-2006-campfire-lobby",
-        "chan-2006-campfire-eng",
-        "chan-2006-campfire",
+        "chan-2006-jabber-lobby",
+        "chan-2006-jabber-eng",
+        "chan-2006-jabber-billing",
         "chan-incident-postmortem",
         "chan-architecture-rfc",
         "chan-product-launch",

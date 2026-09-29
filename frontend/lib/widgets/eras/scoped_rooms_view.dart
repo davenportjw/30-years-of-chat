@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../theme/sepia_theme.dart';
 import '../../models/chat_models.dart';
 
-/// 2006 Campfire View (37signals Web 2.0 aesthetic)
+/// 2006 Jabber & Scoped Rooms View (Web 2.0 aesthetic)
 /// Clean white/cream layout, warm tabs, yellow highlight fade, project-scoped rooms.
 /// Memory Concept: Search Isolation & Context Fencing.
-class CampfireView extends StatefulWidget {
+class ScopedRoomsView extends StatefulWidget {
   final List<Channel> channels;
   final Channel selectedChannel;
   final Function(Channel) onSelectChannel;
@@ -13,7 +13,7 @@ class CampfireView extends StatefulWidget {
   final Function(String) onSendMessage;
   final String? typingAgentName;
 
-  const CampfireView({
+  const ScopedRoomsView({
     super.key,
     required this.channels,
     required this.selectedChannel,
@@ -24,10 +24,10 @@ class CampfireView extends StatefulWidget {
   });
 
   @override
-  State<CampfireView> createState() => _CampfireViewState();
+  State<ScopedRoomsView> createState() => _ScopedRoomsViewState();
 }
 
-class _CampfireViewState extends State<CampfireView> {
+class _ScopedRoomsViewState extends State<ScopedRoomsView> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
@@ -35,23 +35,23 @@ class _CampfireViewState extends State<CampfireView> {
   Message? _selectedMessage;
   bool _soundsEnabled = true;
 
-  // 37signals Web 2.0 Color Palette
-  static const Color campfireCream = Color(0xFFF9F7F2);
-  static const Color campfireWhite = Color(0xFFFFFFFF);
-  static const Color campfireSidebarBg = Color(0xFFF0ECE1);
-  static const Color campfireBorder = Color(0xFFDED8C9);
-  static const Color campfireBorderDark = Color(0xFFC7BEAB);
-  static const Color campfireText = Color(0xFF333333);
-  static const Color campfireTextMuted = Color(0xFF777777);
-  static const Color campfireGreen = Color(0xFF4B6E44);
-  static const Color campfireTabBg = Color(0xFF566952);
-  static const Color campfireYellowFade = Color(0xFFFFFDE3);
-  static const Color campfireWarningBg = Color(0xFFFFF3CD);
-  static const Color campfireWarningBorder = Color(0xFFFFEEBA);
-  static const Color campfireWarningText = Color(0xFF856404);
+  // Web 2.0 Color Palette
+  static const Color scopedCream = Color(0xFFF9F7F2);
+  static const Color scopedWhite = Color(0xFFFFFFFF);
+  static const Color scopedSidebarBg = Color(0xFFF0ECE1);
+  static const Color scopedBorder = Color(0xFFDED8C9);
+  static const Color scopedBorderDark = Color(0xFFC7BEAB);
+  static const Color scopedText = Color(0xFF333333);
+  static const Color scopedTextMuted = Color(0xFF777777);
+  static const Color scopedGreen = Color(0xFF4B6E44);
+  static const Color scopedTabBg = Color(0xFF566952);
+  static const Color scopedYellowFade = Color(0xFFFFFDE3);
+  static const Color scopedWarningBg = Color(0xFFFFF3CD);
+  static const Color scopedWarningBorder = Color(0xFFFFEEBA);
+  static const Color scopedWarningText = Color(0xFF856404);
 
   @override
-  void didUpdateWidget(covariant CampfireView oldWidget) {
+  void didUpdateWidget(covariant ScopedRoomsView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.messages.length != oldWidget.messages.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,7 +118,7 @@ class _CampfireViewState extends State<CampfireView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: campfireCream,
+      color: scopedCream,
       child: Column(
         children: [
           // 37signals Global Warm Header & Tabs
@@ -150,7 +150,7 @@ class _CampfireViewState extends State<CampfireView> {
   Widget _buildWeb2Header() {
     return Container(
       decoration: const BoxDecoration(
-        color: campfireTabBg,
+        color: scopedTabBg,
         border: Border(
           bottom: BorderSide(color: Color(0xFF3B4838), width: 2),
         ),
@@ -167,7 +167,7 @@ class _CampfireViewState extends State<CampfireView> {
                 Icon(Icons.local_fire_department, color: Color(0xFFFF9933), size: 24),
                 SizedBox(width: 8),
                 Text(
-                  'Campfire',
+                  'ScopedRooms',
                   style: TextStyle(
                     fontFamily: 'serif',
                     fontSize: 20,
@@ -242,7 +242,7 @@ class _CampfireViewState extends State<CampfireView> {
       margin: const EdgeInsets.only(right: 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       decoration: BoxDecoration(
-        color: isSelected ? campfireCream : const Color(0xFF455542),
+        color: isSelected ? scopedCream : const Color(0xFF455542),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(5),
           topRight: Radius.circular(5),
@@ -260,7 +260,7 @@ class _CampfireViewState extends State<CampfireView> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          color: isSelected ? campfireText : const Color(0xFFD0DDD0),
+          color: isSelected ? scopedText : const Color(0xFFD0DDD0),
         ),
       ),
     );
@@ -272,17 +272,17 @@ class _CampfireViewState extends State<CampfireView> {
   Widget _buildRoomsSidebar() {
     // Standard 37signals rooms matching seeded channels
     final defaultRooms = [
-      {'id': 'chan-2006-campfire-lobby', 'name': '#general-lobby', 'topic': 'Watercooler & Announcements', 'locked': false},
-      {'id': 'chan-2006-campfire-eng', 'name': '#engineering', 'topic': 'Frontend & Web Services', 'locked': false},
-      {'id': 'chan-2006-campfire', 'name': '#billing-confidential', 'topic': 'Project Apollo Billing & Ledger', 'locked': true},
+      {'id': 'chan-2006-jabber-lobby', 'name': '#general-lobby', 'topic': 'Watercooler & Announcements', 'locked': false},
+      {'id': 'chan-2006-jabber-eng', 'name': '#engineering', 'topic': 'Frontend & Web Services', 'locked': false},
+      {'id': 'chan-2006-jabber-billing', 'name': '#billing-confidential', 'topic': 'Project Apollo Billing & Ledger', 'locked': true},
     ];
 
     return Container(
       width: 250,
       decoration: const BoxDecoration(
-        color: campfireSidebarBg,
+        color: scopedSidebarBg,
         border: Border(
-          right: BorderSide(color: campfireBorder, width: 1),
+          right: BorderSide(color: scopedBorder, width: 1),
         ),
       ),
       child: Column(
@@ -292,11 +292,11 @@ class _CampfireViewState extends State<CampfireView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: campfireBorder)),
+              border: Border(bottom: BorderSide(color: scopedBorder)),
             ),
             child: const Row(
               children: [
-                Icon(Icons.folder_shared_outlined, size: 16, color: campfireGreen),
+                Icon(Icons.folder_shared_outlined, size: 16, color: scopedGreen),
                 SizedBox(width: 8),
                 Text(
                   'PROJECT ROOMS',
@@ -304,7 +304,7 @@ class _CampfireViewState extends State<CampfireView> {
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.8,
-                    color: campfireGreen,
+                    color: scopedGreen,
                   ),
                 ),
               ],
@@ -319,7 +319,7 @@ class _CampfireViewState extends State<CampfireView> {
                 // Preset Web 2.0 rooms
                 ...defaultRooms.map((r) {
                   final isSelected = widget.selectedChannel.id == r['id'] ||
-                      (r['id'] == 'chan-2006-campfire' && widget.selectedChannel.name.contains('billing'));
+                      (r['id'] == 'chan-2006-jabber-billing' && widget.selectedChannel.name.contains('billing'));
                   final isLocked = r['locked'] as bool;
 
                   return Padding(
@@ -329,7 +329,7 @@ class _CampfireViewState extends State<CampfireView> {
                       onTap: () {
                         // Find matching channel from seeded channels
                         final match = widget.channels.firstWhere(
-                          (c) => c.id == r['id'] || (r['id'] == 'chan-2006-campfire' && c.name.contains('billing')),
+                          (c) => c.id == r['id'] || (r['id'] == 'chan-2006-jabber-billing' && c.name.contains('billing')),
                           orElse: () => widget.selectedChannel,
                         );
                         if (match.id != widget.selectedChannel.id) {
@@ -339,10 +339,10 @@ class _CampfireViewState extends State<CampfireView> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? campfireWhite : Colors.transparent,
+                          color: isSelected ? scopedWhite : Colors.transparent,
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: isSelected ? campfireBorderDark : Colors.transparent,
+                            color: isSelected ? scopedBorderDark : Colors.transparent,
                             width: 1,
                           ),
                           boxShadow: isSelected
@@ -354,7 +354,7 @@ class _CampfireViewState extends State<CampfireView> {
                             Icon(
                               isLocked ? Icons.lock : Icons.tag,
                               size: 14,
-                              color: isSelected ? campfireGreen : campfireTextMuted,
+                              color: isSelected ? scopedGreen : scopedTextMuted,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -366,14 +366,14 @@ class _CampfireViewState extends State<CampfireView> {
                                     style: TextStyle(
                                       fontSize: 12.5,
                                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                      color: isSelected ? campfireGreen : campfireText,
+                                      color: isSelected ? scopedGreen : scopedText,
                                     ),
                                   ),
                                   Text(
                                     r['topic'] as String,
                                     style: TextStyle(
                                       fontSize: 10,
-                                      color: isSelected ? campfireText : campfireTextMuted,
+                                      color: isSelected ? scopedText : scopedTextMuted,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -390,7 +390,7 @@ class _CampfireViewState extends State<CampfireView> {
 
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Divider(color: campfireBorder, height: 1),
+                  child: Divider(color: scopedBorder, height: 1),
                 ),
 
                 // Other Channels in Repository
@@ -398,10 +398,10 @@ class _CampfireViewState extends State<CampfireView> {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Text(
                     'OTHER ARCHIVES',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: campfireTextMuted),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: scopedTextMuted),
                   ),
                 ),
-                ...widget.channels.where((c) => !c.name.contains('campfire')).map((c) {
+                ...widget.channels.where((c) => !c.name.contains('jabber')).map((c) {
                   final isSelected = widget.selectedChannel.id == c.id;
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1.5),
@@ -411,7 +411,7 @@ class _CampfireViewState extends State<CampfireView> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: isSelected ? campfireWhite : Colors.transparent,
+                          color: isSelected ? scopedWhite : Colors.transparent,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(
@@ -419,7 +419,7 @@ class _CampfireViewState extends State<CampfireView> {
                             Icon(
                               c.allowedRoles.isNotEmpty ? Icons.lock_outline : Icons.chat_bubble_outline,
                               size: 13,
-                              color: campfireTextMuted,
+                              color: scopedTextMuted,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -427,7 +427,7 @@ class _CampfireViewState extends State<CampfireView> {
                                 '#${c.name}',
                                 style: TextStyle(
                                   fontSize: 11.5,
-                                  color: isSelected ? campfireGreen : campfireText,
+                                  color: isSelected ? scopedGreen : scopedText,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -448,16 +448,16 @@ class _CampfireViewState extends State<CampfireView> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: const BoxDecoration(
               color: Color(0xFFE8E2D5),
-              border: Border(top: BorderSide(color: campfireBorder)),
+              border: Border(top: BorderSide(color: scopedBorder)),
             ),
             child: const Row(
               children: [
-                Icon(Icons.shield_outlined, size: 14, color: campfireGreen),
+                Icon(Icons.shield_outlined, size: 14, color: scopedGreen),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'Context Fencing Active • Room-Isolated Memory',
-                    style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: campfireGreen),
+                    style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: scopedGreen),
                   ),
                 ),
               ],
@@ -472,28 +472,28 @@ class _CampfireViewState extends State<CampfireView> {
   // Center Transcript Area (Clean Web 2.0)
   // ==========================================
   Widget _buildTranscriptPanel() {
-    final isLocked = widget.selectedChannel.allowedRoles.isNotEmpty || widget.selectedChannel.name.contains('campfire');
-    final roomDisplayName = widget.selectedChannel.name.contains('campfire')
+    final isLocked = widget.selectedChannel.allowedRoles.isNotEmpty || widget.selectedChannel.name.contains('jabber');
+    final roomDisplayName = widget.selectedChannel.name.contains('jabber')
         ? '#billing-confidential'
         : '#${widget.selectedChannel.name}';
 
     return Container(
-      color: campfireWhite,
+      color: scopedWhite,
       child: Column(
         children: [
           // Room Header Bar with Room Topic and Lock Icon
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: const BoxDecoration(
-              color: campfireWhite,
-              border: Border(bottom: BorderSide(color: campfireBorder, width: 1)),
+              color: scopedWhite,
+              border: Border(bottom: BorderSide(color: scopedBorder, width: 1)),
             ),
             child: Row(
               children: [
                 Icon(
                   isLocked ? Icons.lock : Icons.tag,
                   size: 20,
-                  color: isLocked ? const Color(0xFFB54708) : campfireGreen,
+                  color: isLocked ? const Color(0xFFB54708) : scopedGreen,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -502,7 +502,7 @@ class _CampfireViewState extends State<CampfireView> {
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'serif',
-                    color: campfireText,
+                    color: scopedText,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -530,7 +530,7 @@ class _CampfireViewState extends State<CampfireView> {
                 Expanded(
                   child: Text(
                     widget.selectedChannel.topic,
-                    style: const TextStyle(fontSize: 12, color: campfireTextMuted),
+                    style: const TextStyle(fontSize: 12, color: scopedTextMuted),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -541,13 +541,13 @@ class _CampfireViewState extends State<CampfireView> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: campfireCream,
-                        border: Border.all(color: campfireBorder),
+                        color: scopedCream,
+                        border: Border.all(color: scopedBorder),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         'Roles: ${widget.selectedChannel.allowedRoles.length}',
-                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: campfireGreen),
+                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: scopedGreen),
                       ),
                     ),
                   ),
@@ -565,7 +565,7 @@ class _CampfireViewState extends State<CampfireView> {
             ),
             child: const Row(
               children: [
-                Icon(Icons.security, size: 16, color: campfireGreen),
+                Icon(Icons.security, size: 16, color: scopedGreen),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -579,7 +579,7 @@ class _CampfireViewState extends State<CampfireView> {
                 ),
                 Text(
                   'Search Isolation Active',
-                  style: TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: campfireGreen),
+                  style: TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: scopedGreen),
                 ),
               ],
             ),
@@ -596,11 +596,11 @@ class _CampfireViewState extends State<CampfireView> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.forum_outlined, size: 36, color: campfireBorderDark),
+                        Icon(Icons.forum_outlined, size: 36, color: scopedBorderDark),
                         SizedBox(height: 8),
                         Text(
                           'No chatter in this room yet.',
-                          style: TextStyle(fontSize: 13, color: campfireTextMuted),
+                          style: TextStyle(fontSize: 13, color: scopedTextMuted),
                         ),
                       ],
                     ),
@@ -614,7 +614,7 @@ class _CampfireViewState extends State<CampfireView> {
                       final isSelected = _selectedMessage?.id == msg.id;
                       final isRecent = index >= widget.messages.length - 2;
 
-                      return _buildCampfireMessageRow(msg, isSelected: isSelected, isRecent: isRecent);
+                      return _buildScopedMessageRow(msg, isSelected: isSelected, isRecent: isRecent);
                     },
                   ),
           ),
@@ -624,18 +624,18 @@ class _CampfireViewState extends State<CampfireView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
               alignment: Alignment.centerLeft,
-              color: campfireCream,
+              color: scopedCream,
               child: Row(
                 children: [
                   const SizedBox(
                     width: 12,
                     height: 12,
-                    child: CircularProgressIndicator(strokeWidth: 1.5, color: campfireGreen),
+                    child: CircularProgressIndicator(strokeWidth: 1.5, color: scopedGreen),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     '${widget.typingAgentName} is typing in $roomDisplayName...',
-                    style: const TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic, color: campfireGreen),
+                    style: const TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic, color: scopedGreen),
                   ),
                 ],
               ),
@@ -654,9 +654,9 @@ class _CampfireViewState extends State<CampfireView> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: campfireWarningBg,
+        color: scopedWarningBg,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: campfireWarningBorder, width: 1.5),
+        border: Border.all(color: scopedWarningBorder, width: 1.5),
         boxShadow: const [
           BoxShadow(color: Color(0x10856404), blurRadius: 4, offset: Offset(0, 2)),
         ],
@@ -664,7 +664,7 @@ class _CampfireViewState extends State<CampfireView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded, size: 20, color: campfireWarningText),
+          const Icon(Icons.warning_amber_rounded, size: 20, color: scopedWarningText),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -678,20 +678,20 @@ class _CampfireViewState extends State<CampfireView> {
                         fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
-                        color: campfireWarningText,
+                        color: scopedWarningText,
                       ),
                     ),
                     Spacer(),
                     Text(
                       'Cross-Room Access Denied',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: campfireWarningText),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: scopedWarningText),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Message from "${msg.senderName}" contains domain-fenced parameters. In accordance with Search Isolation, this context is quarantined within this room. Associative vector queries from other project rooms cannot access or bleed into this session.',
-                  style: const TextStyle(fontSize: 11.5, color: campfireWarningText, height: 1.35),
+                  style: const TextStyle(fontSize: 11.5, color: scopedWarningText, height: 1.35),
                 ),
                 const SizedBox(height: 6),
                 Wrap(
@@ -702,11 +702,11 @@ class _CampfireViewState extends State<CampfireView> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: campfireWarningBorder),
+                        border: Border.all(color: scopedWarningBorder),
                       ),
                       child: Text(
                         tag.label,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: campfireWarningText),
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: scopedWarningText),
                       ),
                     );
                   }).toList(),
@@ -715,7 +715,7 @@ class _CampfireViewState extends State<CampfireView> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 16, color: campfireWarningText),
+            icon: const Icon(Icons.close, size: 16, color: scopedWarningText),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             onPressed: () => setState(() => _selectedMessage = null),
@@ -725,8 +725,8 @@ class _CampfireViewState extends State<CampfireView> {
     );
   }
 
-  /// Campfire message row with clean typography, timestamp on left, and yellow highlight fade
-  Widget _buildCampfireMessageRow(
+  /// Scoped message row with clean typography, timestamp on left, and yellow highlight fade
+  Widget _buildScopedMessageRow(
     Message msg, {
     required bool isSelected,
     required bool isRecent,
@@ -748,7 +748,7 @@ class _CampfireViewState extends State<CampfireView> {
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFFFFF7D6)
-              : (isRecent ? campfireYellowFade : Colors.transparent),
+              : (isRecent ? scopedYellowFade : Colors.transparent),
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
             color: isSelected
@@ -760,14 +760,14 @@ class _CampfireViewState extends State<CampfireView> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left: Timestamp (Campfire style)
+            // Left: Timestamp (Scoped room style)
             SizedBox(
               width: 58,
               child: Text(
                 _formatTime(msg.createdAt),
                 style: const TextStyle(
                   fontSize: 11,
-                  color: campfireTextMuted,
+                  color: scopedTextMuted,
                   fontFamily: 'sans-serif',
                 ),
               ),
@@ -798,7 +798,7 @@ class _CampfireViewState extends State<CampfireView> {
                           ),
                           child: const Text(
                             'AGENT',
-                            style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: campfireGreen),
+                            style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: scopedGreen),
                           ),
                         ),
                       if (hasFencingTag) ...[
@@ -831,7 +831,7 @@ class _CampfireViewState extends State<CampfireView> {
                     style: const TextStyle(
                       fontSize: 13.5,
                       height: 1.4,
-                      color: campfireText,
+                      color: scopedText,
                     ),
                   ),
 
@@ -866,13 +866,13 @@ class _CampfireViewState extends State<CampfireView> {
     );
   }
 
-  /// Campfire Composer with classic "Say" button
+  /// Scoped Room Composer with classic "Say" button
   Widget _buildComposer() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: const BoxDecoration(
-        color: campfireCream,
-        border: Border(top: BorderSide(color: campfireBorder, width: 1)),
+        color: scopedCream,
+        border: Border(top: BorderSide(color: scopedBorder, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -885,24 +885,24 @@ class _CampfireViewState extends State<CampfireView> {
                   controller: _textController,
                   focusNode: _focusNode,
                   onSubmitted: (_) => _handleSend(),
-                  style: const TextStyle(fontSize: 13.5, color: campfireText),
+                  style: const TextStyle(fontSize: 13.5, color: scopedText),
                   decoration: InputDecoration(
                     hintText: 'Speak into #${widget.selectedChannel.name}...',
-                    hintStyle: const TextStyle(fontSize: 13, color: campfireTextMuted),
+                    hintStyle: const TextStyle(fontSize: 13, color: scopedTextMuted),
                     filled: true,
-                    fillColor: campfireWhite,
+                    fillColor: scopedWhite,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
-                      borderSide: const BorderSide(color: campfireBorderDark),
+                      borderSide: const BorderSide(color: scopedBorderDark),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
-                      borderSide: const BorderSide(color: campfireBorderDark),
+                      borderSide: const BorderSide(color: scopedBorderDark),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
-                      borderSide: const BorderSide(color: campfireGreen, width: 1.5),
+                      borderSide: const BorderSide(color: scopedGreen, width: 1.5),
                     ),
                   ),
                 ),
@@ -913,7 +913,7 @@ class _CampfireViewState extends State<CampfireView> {
               ElevatedButton(
                 onPressed: _handleSend,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: campfireGreen,
+                  backgroundColor: scopedGreen,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
@@ -938,7 +938,7 @@ class _CampfireViewState extends State<CampfireView> {
                   },
                   child: const Text(
                     'Quick: Test Billing Fencing',
-                    style: TextStyle(fontSize: 11, color: campfireGreen, decoration: TextDecoration.underline),
+                    style: TextStyle(fontSize: 11, color: scopedGreen, decoration: TextDecoration.underline),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -949,7 +949,7 @@ class _CampfireViewState extends State<CampfireView> {
                   },
                   child: const Text(
                     'Quick: Check Allowed Roles',
-                    style: TextStyle(fontSize: 11, color: campfireGreen, decoration: TextDecoration.underline),
+                    style: TextStyle(fontSize: 11, color: scopedGreen, decoration: TextDecoration.underline),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -981,7 +981,7 @@ class _CampfireViewState extends State<CampfireView> {
                 const SizedBox(width: 20),
                 const Text(
                   'Press Enter to Speak',
-                  style: TextStyle(fontSize: 10.5, color: campfireTextMuted),
+                  style: TextStyle(fontSize: 10.5, color: scopedTextMuted),
                 ),
               ],
             ),

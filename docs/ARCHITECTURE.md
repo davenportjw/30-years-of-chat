@@ -10,9 +10,9 @@
 |---|---|---|---|---|
 | **1** | 1988 | **IRC & Unix talk** | **Short-Term Memory (STM) & FIFO Eviction** | Volatile RAM ring buffer (5 turns). Demonstrates the *Amnesia Trap*: oldest conversational turns are permanently evicted upon overflow. Fullscreen green-on-black CRT terminal. |
 | **2** | 1997 | **AIM & ICQ** | **Working Memory & Attentional State** | Stateful 1:1 session isolation. Agent presence (`available`, `away`, `typing`) represents attentional state; away messages dynamically prime agent persona/prompts. Classic Win95/98 window chrome with Buddy List. |
-| **3** | 2006 | **Campfire & Jabber** | **Search Isolation & Context Fencing** | Domain-partitioned rooms. Enforces role-based permissions (`AllowedRoles`) to prevent associative bleed, prompt contamination, or permission leaks across rooms. 37signals Web 2.0 room tabs with quarantine warnings. |
-| **4** | 2013 | **Slack 1.0 & HipChat** | **Long-Term Memory (LTM): Vector Search RAG** | Persistent cloud archive and inbound webhooks. Autonomous agents perform exact cosine similarity retrieval on vector indexes without context stuffing. Classic aubergine sidebar with universal vector search bar. |
-| **5** | 2017 | **Slack Threads & Forums** | **Sub-Task Scratchpads & Compaction** | Collapsible sub-task scratchpads keep main channel context clean. Scribe agent generates hierarchical state rollups reducing token consumption by 96%. Expandable right-hand thread drawer. |
+| **3** | 2006 | **Jabber & Scoped Rooms** | **Search Isolation & Context Fencing** | Domain-partitioned rooms. Enforces role-based permissions (`AllowedRoles`) to prevent associative bleed, prompt contamination, or permission leaks across rooms. Web 2.0 room tabs with quarantine warnings. |
+| **4** | 2013 | **HipChat & Cloud Archive** | **Long-Term Memory (LTM): Vector Search RAG** | Persistent cloud archive and inbound webhooks. Autonomous agents perform exact cosine similarity retrieval on vector indexes without context stuffing. Classic aubergine sidebar with universal vector search bar. |
+| **5** | 2017 | **Discord Forums & Threaded Chat** | **Sub-Task Scratchpads & Compaction** | Collapsible sub-task scratchpads keep main channel context clean. Scribe agent generates hierarchical state rollups reducing token consumption by 96%. Expandable right-hand thread drawer. |
 | **6** | 2026 | **Collaborative Agent Mesh** | **Dual-Layer Memory, REM Dreaming & Crystalline Recall** | Modern multi-agent swarm with shared team blackboards alongside confidential private agent scratchpads (inner monologue + tool traces). Vertex AI Gemini 3.8 background dreaming prunes conversational noise, records intent trajectories, and crystallizes durable beliefs into long-term BigQuery vector storage for fast-path recall (<10ms). Academic sepia 3-panel layout with 5-tab Memory Lens drawer. |
 
 ---
@@ -27,9 +27,9 @@ The application frontend features a top navigation header (`TopEraBar`) containi
 When an era is selected, the Flutter Web interface **literally transforms** into the authentic styling of that era:
 - **1988 IRC (`IrcTerminalView`)**: Monospace phosphor CRT terminal (#33FF33 on #0A0D0A) with scanlines, no sidebars or drawers, volatile 5-turn FIFO RAM display, and live `[AMNESIA TRAP]` eviction banners.
 - **1997 AIM (`AimMessengerView`)**: Windows 95/98 beveled window chrome with navy title bar, Buddy List with active agents, away message persona priming modal, and sunken 1:1 direct chat log with formatting bar.
-- **2006 Campfire (`CampfireView`)**: 37signals Web 2.0 cream aesthetic, project-scoped room tabs, sound toggle, yellow fade highlight, and real-time `CONTEXT QUARANTINE WARNING` cards for cross-room isolation.
-- **2013 Slack 1.0 (`SlackV1View`)**: Aubergine sidebar (`#4A154B`), clean white transcript, and top universal Vector RAG search bar computing live cosine similarity distances.
-- **2017 Slack Threads (`SlackThreadsView`)**: Modern Slack workspace with an interactive resizable right-hand Thread Scratchpad (resizable from left to right via a draggable splitter handle, quick preset buttons `Std: 430px`, `Wide: 650px`, full-width `Maximize`/`Restore`, and collapsible root prompt toggle), active thread highlighting in the main channel stream, and prominent `@scribe summarize thread` compaction button (-96% token rollup).
+- **2006 Jabber & Scoped Rooms (`ScopedRoomsView`)**: Web 2.0 cream aesthetic, project-scoped room tabs, sound toggle, yellow fade highlight, and real-time `CONTEXT QUARANTINE WARNING` cards for cross-room isolation.
+- **2013 HipChat & Cloud Archive (`VectorArchiveView`)**: Aubergine sidebar (`#4A154B`), clean white transcript, and top universal Vector RAG search bar computing live cosine similarity distances.
+- **2017 Threaded Chat (`ThreadsView`)**: Modern workspace with an interactive resizable right-hand Thread Scratchpad (resizable from left to right via a draggable splitter handle, quick preset buttons `Std: 430px`, `Wide: 650px`, full-width `Maximize`/`Restore`, and collapsible root prompt toggle), active thread highlighting in the main channel stream, and prominent `@scribe summarize thread` compaction button (-96% token rollup).
 - **2026 Collaborative Agent Mesh (`AgentMeshView`)**: Academic sepia 3-panel studio (Swarm Roster with live presence, Blackboard stream with compact Intent Pills and Progressive Quick Action Scenario Chips, and 5-tab Memory Lens Drawer for private scratchpads, live Dreaming consolidation, and crystalline belief inspection). Features an automated 5-step interactive tour.
 
 ---
@@ -120,8 +120,8 @@ Each historical era is paired with an interactive **Memory Architecture & Live T
 |                                                        | [1988] Ephemeral Buffer (IRC)  |
 |                                                        | Cognitive: FIFO Ring Buffer    |
 |                  Era Main View                         +--------------------------------+
-|           (IRC / AIM / Campfire /                      | [Architecture] [Code] [Trace]  |
-|            Slack / Threads / Mesh)                     |                                |
+|           (IRC / AIM / Jabber /                      | [Architecture] [Code] [Trace]  |
+|             HipChat / Threads / Mesh)                     |                                |
 |                                                        | [Step 1] -> [Step 2]           |
 |                                                        | [Step 3] -> [Step 4]           |
 |                                                        |                                |
@@ -178,8 +178,8 @@ To prevent cross-agent crosstalk and unauthorized associative memory leaks, stri
 |---|---|---|---|
 | **Era 1 (1988 IRC)** | Ephemeral RAM Ring Buffer | Strict 5-turn FIFO capacity; evicted turns are purged immediately from working memory. | `FIFO_EVICT` span triggers upon Turn 6; evicted credentials cannot be recovered or referenced. |
 | **Era 2 (1997 AIM)** | 1:1 Direct Message Sessions | Complete bilateral working memory isolation. Agents have ZERO visibility into peer DM channels. | `SESSION_BOUNDARY_CHECK` span quenches cross-agent inquiries; direct messages lock target role and ignore hijack attempts. |
-| **Era 3 (2006 Campfire)** | Role-Based Room Firewalls | Context fencing via `AllowedRoles`. Unprivileged agents cannot access confidential executive domains. | `FIREWALL_QUARANTINE` span blocks unauthorized cross-tenant queries at the boundary. |
-| **Era 4 (2013 Slack 1.0)** | Channel-Scoped Vector RAG | Cosine similarity search scoped strictly to channel domain; non-vector eras bypass vector search entirely. | Embeddings partition search space; returns sub-10ms historical ADR precedents without context stuffing. |
+| **Era 3 (2006 Jabber)** | Role-Based Room Firewalls | Context fencing via `AllowedRoles`. Unprivileged agents cannot access confidential executive domains. | `FIREWALL_QUARANTINE` span blocks unauthorized cross-tenant queries at the boundary. |
+| **Era 4 (2013 HipChat)** | Channel-Scoped Vector RAG | Cosine similarity search scoped strictly to channel domain; non-vector eras bypass vector search entirely. | Embeddings partition search space; returns sub-10ms historical ADR precedents without context stuffing. |
 | **Era 5 (2017 Threads)** | Sub-Task Scratchpad Isolation | Ephemeral sub-task deliberations remain isolated in child threads until explicitly compacted. | `SCRIBE_COMPACT` creates a 96% token rollup into the root channel, keeping root context pristine. |
 | **Era 6 (2026 Agent Mesh)** | Dual-Layer Public/Private Memory | Private scratchpads (inner monologue, tool traces) are confidential and never leak into team blackboards. | Offline Gemini 3.8 REM dreaming synthesizes shared blackboard knowledge while preserving private scratchpad boundaries. |
 
@@ -253,14 +253,14 @@ flowchart TD
     E2_Away --> E2_Prompt
   end
 
-  subgraph Era3["2006 Campfire: Role Firewalls"]
+  subgraph Era3["2006 Jabber: Role Firewalls"]
     E3_In["Post to #channel"] --> E3_RBAC{"Agent Role in AllowedRoles?"}
     E3_RBAC -->|No| E3_Quarantine["Block & Quarantine (FIREWALL_QUARANTINE)"]
     E3_RBAC -->|Yes| E3_Scope["Append to Scoped Room Context"]
     E3_Scope --> E3_Prompt["Assemble Fenced Prompt -> Web 2.0 Room Stream"]
   end
 
-  subgraph Era4["2013 Slack 1.0: Vector Search RAG"]
+  subgraph Era4["2013 HipChat: Vector Search RAG"]
     E4_In["User Query / Inbound Webhook"] --> E4_Embed["Compute 16-d Semantic Embedding Vector"]
     E4_Embed --> E4_Search["Query Historical ADRs via Cosine Distance"]
     E4_Search --> E4_Inject["Inject Sub-10ms Vector Precedents into Prompt"]
@@ -291,9 +291,9 @@ flowchart TD
 |---|---|---|---|---|---|
 | **1988 IRC** | Stream Ingestion & Token Framing | Volatile Ring Buffer Allocation | The Amnesia Trap (FIFO Eviction) | Sliding Working Window | **The Amnesia Trap**: Oldest turns evicted unconditionally without summarization. Volatile 5-turn RAM. Triggered interactively via `/buffer-test` which dispatches a rapid 6-turn sequence demonstrating FIFO displacement of turn 1 credentials (`!set-secret`) in real time. |
 | **1997 AIM** | Bilateral Session Ingest | Attentional State Machine | Presence-Driven Persona Priming | Isolated 1:1 Working Memory | **Attentional Desync & Dynamic Away Delegate**: Stale status or peer mentions breaching 1:1 working memory isolation. Setting an away message dynamically primes Gemini 3.8 as an authentic 1997 automated away-delegate citing the away memo, preserving presence without auto-reverting to available. Quarantined via `SESSION_BOUNDARY_CHECK`. |
-| **2006 Campfire** | Domain Room Ingestion | RBAC Boundary Validator | Context Bleed Firewall & Quarantine | Scoped Domain Context Assembly | **Associative Bleed**: Vector or associative similarity leaks data between unlinked rooms. Quarantined via `FIREWALL_QUARANTINE`. |
-| **2013 Slack 1.0** | Event Stream Ingestion | Semantic Vector Embedding | Cosine Distance Similarity Search | Grounded Context Synthesis | **Context Dilution**: Top-K retrieval injects conflicting or irrelevant historical turns without strict thresholding. |
-| **2017 Slack Threads** | Thread Sub-Task Spawn | Local Turn Accumulator | Hierarchical Compaction (Scribe Rollup) | Root Channel Synchronization | **Thread Orphanage**: Sub-tasks run indefinitely without compacting back to root context. |
+| **2006 Jabber** | Domain Room Ingestion | RBAC Boundary Validator | Context Bleed Firewall & Quarantine | Scoped Domain Context Assembly | **Associative Bleed**: Vector or associative similarity leaks data between unlinked rooms. Quarantined via `FIREWALL_QUARANTINE`. |
+| **2013 HipChat** | Event Stream Ingestion | Semantic Vector Embedding | Cosine Distance Similarity Search | Grounded Context Synthesis | **Context Dilution**: Top-K retrieval injects conflicting or irrelevant historical turns without strict thresholding. |
+| **2017 Threaded Chat** | Thread Sub-Task Spawn | Local Turn Accumulator | Hierarchical Compaction (Scribe Rollup) | Root Channel Synchronization | **Thread Orphanage**: Sub-tasks run indefinitely without compacting back to root context. |
 | **2026 Agent Mesh** | Blackboard Broadcast Ingestion | Private Scratchpad Reasoning | Multi-Agent Consensus Arbitration | Offline REM Dreaming Consolidation | **Dual-Layer Divergence & Split-Brain**: Private agent scratchpads contradict team blackboard state. |
 
 ---
@@ -356,8 +356,8 @@ The repository provides a complete, non-mocked End-to-End (E2E) integration test
 |---|---|---|
 | [`tests/test_scene_1988_irc.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_1988_irc.py) | **Scene 1 (1988)**: The Ephemeral Buffer | Fixed capacity buffer (`max_buffer_turns = 5`), volatile RAM sliding window, Amnesia Trap FIFO displacement, dropped credentials/turns, buffer telemetry (`current_turns <= 5`, `evicted_count > 0`). |
 | [`tests/test_scene_1997_aim.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_1997_aim.py) | **Scene 2 (1997)**: 1:1 Direct Session & Presence | 1:1 conversation isolation (`is_direct_message = true`, role restriction), buddy presence lifecycle (`available`, `away`, `typing`), dynamic persona priming via away messages, session boundary crosstalk prevention. |
-| [`tests/test_scene_2006_campfire.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_2006_campfire.py) | **Scene 3 (2006)**: Scoped Rooms & Context Fencing | Project-scoped rooms (`#general-lobby`, `#engineering`, `#billing-confidential`), role quarantine (`researcher-agent` quarantined from billing), associative bleed and prompt poisoning prevention. |
-| [`tests/test_scene_2013_slack.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_2013_slack.py) | **Scene 4 (2013)**: Searchable Vector Archive | Persistent cloud log (72h retention), Vector Search RAG with cosine distance, inbound sensory webhook telemetry ingestion (`POST /events`), incident audit trail intent tagging. |
+| [`tests/test_scene_2006_jabber.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_2006_jabber.py) | **Scene 3 (2006)**: Scoped Rooms & Context Fencing | Project-scoped rooms (`#general-lobby`, `#engineering`, `#billing-confidential`), role quarantine (`researcher-agent` quarantined from billing), associative bleed and prompt poisoning prevention. |
+| [`tests/test_scene_2013_hipchat.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_2013_hipchat.py) | **Scene 4 (2013)**: Searchable Vector Archive | Persistent cloud log (72h retention), Vector Search RAG with cosine distance, inbound sensory webhook telemetry ingestion (`POST /events`), incident audit trail intent tagging. |
 | [`tests/test_scene_2017_threads.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_2017_threads.py) | **Scene 5 (2017)**: Threads & Scribe Compaction | Thread sub-task scratchpad isolation (`?thread_id=`), root stream token shielding, Scribe compaction state checkpoints with >90% token reduction ratio. |
 | [`tests/test_scene_2026_agent_mesh.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_scene_2026_agent_mesh.py) | **Scene 6 (2026)**: Collaborative Agent Mesh | Dual-layer memory (public team blackboard vs private inner monologue `/api/scratchpads`), zero-leakage cognitive privacy, live Vertex AI Gemini 3.8 REM Dreaming memory consolidation (`/consolidate` & `/reports`). |
 | [`tests/test_web_deployment.py`](file:///Users/jasondavenport/GitHub/agents-of-chat/tests/test_web_deployment.py) | **Web Core**: Deployment & Ingress | Flutter Web SPA entrypoint (`index.html`), static bundle assets (`flutter_bootstrap.js`), CORS headers, vector DDL schema endpoint, autonomous loop pacing, live RFC 6455 WebSocket connectivity. |
@@ -371,8 +371,8 @@ uv run pytest -v
 # Target specific scene verification
 uv run pytest tests/test_scene_1988_irc.py -v
 uv run pytest tests/test_scene_1997_aim.py -v
-uv run pytest tests/test_scene_2006_campfire.py -v
-uv run pytest tests/test_scene_2013_slack.py -v
+uv run pytest tests/test_scene_2006_jabber.py -v
+uv run pytest tests/test_scene_2013_hipchat.py -v
 uv run pytest tests/test_scene_2017_threads.py -v
 uv run pytest tests/test_scene_2026_agent_mesh.py -v
 ```
@@ -397,9 +397,9 @@ Each era is evaluated against 6 rigorous pedagogical criteria:
 **Latest Live Gemini 3.8 Flash Evaluation Results:**
 - **1988 IRC & Unix talk**: `8.8 / 10` — PASS
 - **1997 AIM & ICQ**: `9.1 / 10` — PASS
-- **2006 Campfire & Jabber**: `9.3 / 10` — PASS
-- **2013 Slack 1.0 & HipChat**: `9.4 / 10` — PASS
-- **2017 Slack Threads & Forums**: `9.4 / 10` — PASS
+- **2006 Jabber & Scoped Rooms**: `9.3 / 10` — PASS
+- **2013 HipChat & Cloud Archive**: `9.4 / 10` — PASS
+- **2017 Discord Forums & Threaded Chat**: `9.4 / 10` — PASS
 - **2026 Collaborative Agent Mesh**: `9.5 / 10` — PASS
 - **Composite Score**: **`9.25 / 10` (PASS)**
 

@@ -35,20 +35,20 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 			ActiveFeatures: []string{"buddy_list", "presence_state", "away_message", "1on1_session"},
 		},
 		{
-			ID:             "era-2006-campfire",
+			ID:             "era-2006-jabber",
 			Year:           2006,
 			Name:           "Scoped Rooms & Context Fencing",
-			Platform:       "37signals Campfire & Jabber",
+			Platform:       "Jabber & Scoped Rooms",
 			ChatParadigm:   "Project-Scoped Multi-User Rooms",
 			MemoryConcept:  "Search Isolation & Context Fencing",
 			Description:    "Domain-partitioned memory rooms. Isolates project topics and applies role-based permissions across channel perimeters.",
 			ActiveFeatures: []string{"context_fencing", "topic_isolation", "role_permissions"},
 		},
 		{
-			ID:             "era-2013-slack",
+			ID:             "era-2013-hipchat",
 			Year:           2013,
 			Name:           "The Searchable Vector Archive",
-			Platform:       "Slack 1.0 & HipChat",
+			Platform:       "HipChat & Cloud Archive",
 			ChatParadigm:   "Persistent Cloud Log & Webhooks",
 			MemoryConcept:  "Long-Term Memory (LTM): Vector Search RAG",
 			Description:    "Append-only persistent cloud event storage. Autonomous agents query vector indexes via cosine distance to recall past incidents and ADRs, triggered by inbound telemetry webhooks.",
@@ -58,7 +58,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 			ID:             "era-2017-threads",
 			Year:           2017,
 			Name:           "Threads & Scribe Compaction",
-			Platform:       "Slack Threads & Discord Forums",
+			Platform:       "Discord Forums & Threaded Chat",
 			ChatParadigm:   "Thread Branching & Collapsible Scratchpads",
 			MemoryConcept:  "Sub-Task Isolation & Hierarchical State Rollup",
 			Description:    "Branching complex investigations into thread scratchpads preserves main-channel token budgets. A Scribe agent rolls up resolved threads into compact checkpoints (-96% tokens).",
@@ -384,43 +384,43 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 	}
 
 	// ==========================================
-	// Scenario 3: #2006-campfire-rooms
-	// Epoch: 2006 Campfire — Scoped Rooms & Context Fencing
+	// Scenario 3: #2006-jabber-rooms
+	// Epoch: 2006 Jabber — Scoped Rooms & Context Fencing
 	// ==========================================
-	chanCampfireLobby := Channel{
-		ID:             "chan-2006-campfire-lobby",
-		EraID:          "era-2006-campfire",
-		Name:           "2006-campfire-lobby",
+	chanJabberLobby := Channel{
+		ID:             "chan-2006-jabber-lobby",
+		EraID:          "era-2006-jabber",
+		Name:           "2006-jabber-lobby",
 		Topic:          "Watercooler & Company Announcements",
 		Description:    "General open lobby room for company-wide chat. No restrictive context fence.",
-		SystemPrompt:   "You are in the Campfire general lobby. Company announcements, welcoming team members, and general questions live here.",
+		SystemPrompt:   "You are in the general lobby. Company announcements, welcoming team members, and general questions live here.",
 		RetentionHours: 48,
 		AllowedRoles:   []string{},
 		CreatedAt:      baseTime,
 	}
-	if err := store.CreateChannel(ctx, chanCampfireLobby); err != nil {
+	if err := store.CreateChannel(ctx, chanJabberLobby); err != nil {
 		return err
 	}
 
-	chanCampfireEng := Channel{
-		ID:             "chan-2006-campfire-eng",
-		EraID:          "era-2006-campfire",
-		Name:           "2006-campfire-eng",
+	chanJabberEng := Channel{
+		ID:             "chan-2006-jabber-eng",
+		EraID:          "era-2006-jabber",
+		Name:           "2006-jabber-eng",
 		Topic:          "Frontend & Services Architecture",
 		Description:    "Engineering discussions for services, infrastructure, and user interfaces.",
-		SystemPrompt:   "You are in the Campfire engineering room. Discussions center on code compilation, frontend widgets, and service deployment.",
+		SystemPrompt:   "You are in the engineering room. Discussions center on code compilation, frontend widgets, and service deployment.",
 		RetentionHours: 48,
 		AllowedRoles:   []string{"lead-agent", "scribe-agent", "researcher-agent", "jason"},
 		CreatedAt:      baseTime,
 	}
-	if err := store.CreateChannel(ctx, chanCampfireEng); err != nil {
+	if err := store.CreateChannel(ctx, chanJabberEng); err != nil {
 		return err
 	}
 
-	chanCampfire := Channel{
-		ID:             "chan-2006-campfire",
-		EraID:          "era-2006-campfire",
-		Name:           "2006-campfire-billing",
+	chanJabberBilling := Channel{
+		ID:             "chan-2006-jabber-billing",
+		EraID:          "era-2006-jabber",
+		Name:           "2006-jabber-billing",
 		Topic:          "Project Apollo: Billing Engine & Consistency Rules [Confidential]",
 		Description:    "Domain-scoped group room enforcing context fencing. Quarantines billing architectural parameters from other rooms.",
 		SystemPrompt:   "You are the Apollo billing engineering room. All discussion is strictly scoped to ledger consistency and idempotency. Reject out-of-domain marketing or frontend queries.",
@@ -428,20 +428,20 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		AllowedRoles:   []string{"lead-agent", "scribe-agent", "jason"},
 		CreatedAt:      baseTime,
 	}
-	if err := store.CreateChannel(ctx, chanCampfire); err != nil {
+	if err := store.CreateChannel(ctx, chanJabberBilling); err != nil {
 		return err
 	}
 
-	campfireMsgs := []Message{
+	jabberMsgs := []Message{
 		// General Lobby
 		{
 			ID:         "msg-camp-lobby-01",
-			ChannelID:  chanCampfireLobby.ID,
+			ChannelID:  chanJabberLobby.ID,
 			SenderType: "user",
 			SenderID:   "jason",
 			SenderName: "Jason Davenport",
 			AvatarURL:  "https://api.dicebear.com/7.x/avataaars/svg?seed=jason",
-			Content:    "Welcome everyone to Campfire. Remember that confidential project topics must stay fenced to their respective rooms.",
+			Content:    "Welcome everyone to Jabber. Remember that confidential project topics must stay fenced to their respective rooms.",
 			TokenCount: 65,
 			Embedding:  vArch,
 			IntentTags: []IntentTag{
@@ -456,7 +456,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-camp-lobby-02",
-			ChannelID:  chanCampfireLobby.ID,
+			ChannelID:  chanJabberLobby.ID,
 			SenderType: "agent",
 			SenderID:   "lead-agent",
 			SenderName: "Lead Coordinator",
@@ -477,7 +477,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		// Engineering
 		{
 			ID:         "msg-camp-eng-01",
-			ChannelID:  chanCampfireEng.ID,
+			ChannelID:  chanJabberEng.ID,
 			SenderType: "user",
 			SenderID:   "jason",
 			SenderName: "Jason Davenport",
@@ -497,7 +497,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-camp-eng-02",
-			ChannelID:  chanCampfireEng.ID,
+			ChannelID:  chanJabberEng.ID,
 			SenderType: "agent",
 			SenderID:   "researcher-agent",
 			SenderName: "Dev Researcher",
@@ -518,7 +518,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		// Billing Confidential
 		{
 			ID:         "msg-camp-01",
-			ChannelID:  chanCampfire.ID,
+			ChannelID:  chanJabberBilling.ID,
 			SenderType: "user",
 			SenderID:   "jason",
 			SenderName: "Jason Davenport",
@@ -538,7 +538,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-camp-02",
-			ChannelID:  chanCampfire.ID,
+			ChannelID:  chanJabberBilling.ID,
 			SenderType: "agent",
 			SenderID:   "lead-agent",
 			SenderName: "Lead Coordinator",
@@ -557,34 +557,34 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 			CreatedAt: baseTime.Add(18 * time.Minute),
 		},
 	}
-	for _, m := range campfireMsgs {
+	for _, m := range jabberMsgs {
 		if err := store.SaveMessage(ctx, m); err != nil {
 			return err
 		}
 	}
 
 	// ==========================================
-	// Scenario 4: #2013-slack-archive (Incident Post-Mortem)
-	// Epoch: 2013 Slack — Long-Term Memory (LTM) & Vector RAG
+	// Scenario 4: #2013-hipchat-archive (Incident Post-Mortem)
+	// Epoch: 2013 HipChat — Long-Term Memory (LTM) & Vector RAG
 	// ==========================================
-	chanSlack := Channel{
+	chanHipchat := Channel{
 		ID:             "chan-incident-postmortem",
-		EraID:          "era-2013-slack",
-		Name:           "2013-slack-archive",
+		EraID:          "era-2013-hipchat",
+		Name:           "2013-hipchat-archive",
 		Topic:          "P0 Production Outage: Auth Gateway 504 Latency & Lock Exhaustion",
 		Description:    "War room for incident triage. Demonstrates Vector Search (RAG) and sensory webhook alert perception.",
 		SystemPrompt:   "You are an incident response engineering team. Focus on fast triage, root cause analysis, mitigation, and post-mortem generation.",
 		RetentionHours: 72,
 		CreatedAt:      baseTime,
 	}
-	if err := store.CreateChannel(ctx, chanSlack); err != nil {
+	if err := store.CreateChannel(ctx, chanHipchat); err != nil {
 		return err
 	}
 
-	slackMsgs := []Message{
+	hipchatMsgs := []Message{
 		{
 			ID:         "msg-inc-01",
-			ChannelID:  chanSlack.ID,
+			ChannelID:  chanHipchat.ID,
 			SenderType: "system",
 			SenderID:   "sentry-bot",
 			SenderName: "Sentry Alerts",
@@ -604,7 +604,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-inc-02",
-			ChannelID:  chanSlack.ID,
+			ChannelID:  chanHipchat.ID,
 			SenderType: "user",
 			SenderID:   "jason",
 			SenderName: "Jason Davenport",
@@ -624,7 +624,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-inc-03",
-			ChannelID:  chanSlack.ID,
+			ChannelID:  chanHipchat.ID,
 			SenderType: "agent",
 			SenderID:   "lead-agent",
 			SenderName: "Lead Coordinator",
@@ -644,7 +644,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-inc-04",
-			ChannelID:  chanSlack.ID,
+			ChannelID:  chanHipchat.ID,
 			SenderType: "agent",
 			SenderID:   "researcher-agent",
 			SenderName: "Dev Researcher",
@@ -664,7 +664,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-inc-05",
-			ChannelID:  chanSlack.ID,
+			ChannelID:  chanHipchat.ID,
 			SenderType: "agent",
 			SenderID:   "lead-agent",
 			SenderName: "Lead Coordinator",
@@ -684,7 +684,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		},
 		{
 			ID:         "msg-inc-06",
-			ChannelID:  chanSlack.ID,
+			ChannelID:  chanHipchat.ID,
 			SenderType: "system",
 			SenderID:   "datadog-bot",
 			SenderName: "Telemetry Bot",
@@ -703,7 +703,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 			CreatedAt: baseTime.Add(29 * time.Minute),
 		},
 	}
-	for _, m := range slackMsgs {
+	for _, m := range hipchatMsgs {
 		if err := store.SaveMessage(ctx, m); err != nil {
 			return err
 		}
@@ -875,7 +875,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		Name:           "2026-agent-mesh",
 		Topic:          "Agents of Chat GA Launch: Multi-Agent Mesh & Dreaming Consolidation",
 		Description:    "Autonomous multi-agent workspace showing shared blackboard, private inner monologues, and Dreaming consolidation.",
-		SystemPrompt:   "You are an agile software delivery team coordinating product launch deliverables, security audits, and deployment sign-offs.",
+		SystemPrompt:   "You are an agile software delivery team coordinating product launch deliverables, security audits, and deployment sign-offs. Keep all responses extremely terse (2 to 3 lines maximum) for live demo readability.",
 		RetentionHours: 48,
 		CreatedAt:      baseTime,
 	}

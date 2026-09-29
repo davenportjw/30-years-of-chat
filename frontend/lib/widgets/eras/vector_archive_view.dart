@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../models/chat_models.dart';
 import '../theme/sepia_theme.dart';
 
-/// SlackV1View implements the Classic Slack 1.0 aesthetic:
+/// VectorArchiveView implements the Cloud Archive & Vector RAG aesthetic:
 /// - Deep aubergine sidebar (#4A154B)
 /// - # channel list and agent roster
 /// - Clean white transcript area
 /// - Top universal search bar demonstrating Long-Term Memory (LTM) & Vector Search RAG
 ///   with real cosine distance metrics.
-class SlackV1View extends StatefulWidget {
+class VectorArchiveView extends StatefulWidget {
   final List<Channel> channels;
   final Channel selectedChannel;
   final Function(Channel) onSelectChannel;
@@ -18,7 +18,7 @@ class SlackV1View extends StatefulWidget {
   final String? typingAgentName;
   final Function(Message)? onSelectMessage;
 
-  const SlackV1View({
+  const VectorArchiveView({
     super.key,
     required this.channels,
     required this.selectedChannel,
@@ -30,7 +30,7 @@ class SlackV1View extends StatefulWidget {
   });
 
   @override
-  State<SlackV1View> createState() => _SlackV1ViewState();
+  State<VectorArchiveView> createState() => _VectorArchiveViewState();
 }
 
 class _VectorDocument {
@@ -63,7 +63,7 @@ class _SearchResult {
   });
 }
 
-class _SlackV1ViewState extends State<SlackV1View> {
+class _VectorArchiveViewState extends State<VectorArchiveView> {
   final TextEditingController _msgController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -86,7 +86,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
       id: 'INC-2026-04',
       title: 'INC-2026-04: Batch Worker Lock Contention on auth_tokens',
       category: 'Incident Post-Mortem',
-      channel: '#2013-slack-archive',
+      channel: '#2013-hipchat-archive',
       summary:
           'Batch reconciliation worker saturated auth_tokens row locks during token expiry sweep, triggering 504 gateway timeouts. Resolution: Throttled worker concurrency from 64 to 8.',
       embedding: [0.85, 0.68, 0.25, 0.10, 0.95, 0.11, 0.03, 0.91, 0.72, 0.22, 0.09, 0.89, 0.12, 0.04, 0.88, 0.71],
@@ -95,7 +95,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
       id: 'INC-2026-08',
       title: 'INC-2026-08: HTTP 504 Auth Gateway Latency Spike',
       category: 'Incident Post-Mortem',
-      channel: '#2013-slack-archive',
+      channel: '#2013-hipchat-archive',
       summary:
           'Critical webhook alert triggered on service-auth-proxy with 18.4% 504 error rate and p99 latency reaching 9,420ms. Mitigated by scaling unthrottled replica count to 0.',
       embedding: [0.82, 0.74, 0.21, 0.12, 0.91, 0.15, 0.05, 0.88, 0.79, 0.18, 0.11, 0.85, 0.14, 0.06, 0.83, 0.77],
@@ -104,7 +104,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
       id: 'ADR-014',
       title: 'ADR-014: Vector Index Partitioning & Cosine Distance',
       category: 'Architecture Decision Record',
-      channel: '#2006-campfire-rooms',
+      channel: '#2006-jabber-rooms',
       summary:
           'Defines domain-partitioned vector indexing using cosine distance metrics. Guarantees search isolation between channels to prevent context poisoning across agents.',
       embedding: [0.12, 0.24, 0.88, 0.92, 0.14, 0.86, 0.22, 0.15, 0.22, 0.89, 0.94, 0.12, 0.85, 0.25, 0.18, 0.28],
@@ -122,7 +122,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
       id: 'POST-021',
       title: 'POST-MORTEM: Cron Token Reap Thread Starvation',
       category: 'Incident Post-Mortem',
-      channel: '#2013-slack-archive',
+      channel: '#2013-hipchat-archive',
       summary:
           'Deadlock in connection pool caused by unindexed foreign key in auth_tokens table under high concurrency.',
       embedding: [0.78, 0.81, 0.19, 0.14, 0.84, 0.22, 0.08, 0.82, 0.85, 0.16, 0.12, 0.81, 0.18, 0.09, 0.79, 0.83],
@@ -130,7 +130,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
   ];
 
   @override
-  void didUpdateWidget(covariant SlackV1View oldWidget) {
+  void didUpdateWidget(covariant VectorArchiveView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.messages.length != oldWidget.messages.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -227,18 +227,18 @@ class _SlackV1ViewState extends State<SlackV1View> {
 
   @override
   Widget build(BuildContext context) {
-    // Slack 1.0 Classic Color Palette
+    // Vector Archive Classic Color Palette
     const aubergineSidebar = Color(0xFF4A154B);
     const aubergineDark = Color(0xFF3F0E40);
     const aubergineActive = Color(0xFF350D36);
-    const slackTeal = Color(0xFF38978D);
-    const slackBorder = Color(0xFFE8E8E8);
+    const archiveTeal = Color(0xFF38978D);
+    const archiveBorder = Color(0xFFE8E8E8);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Row(
         children: [
-          // 1. Classic Slack 1.0 Aubergine Sidebar (260px)
+          // 1. Classic Aubergine Sidebar (260px)
           Container(
             width: 260,
             color: aubergineSidebar,
@@ -283,7 +283,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
                                   width: 8,
                                   height: 8,
                                   decoration: const BoxDecoration(
-                                    color: slackTeal,
+                                    color: archiveTeal,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -342,7 +342,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
                             decoration: BoxDecoration(
                               color: isSelected ? aubergineActive : Colors.transparent,
                               border: isSelected
-                                  ? const Border(left: BorderSide(color: slackTeal, width: 4))
+                                  ? const Border(left: BorderSide(color: archiveTeal, width: 4))
                                   : null,
                             ),
                             child: Row(
@@ -408,9 +408,9 @@ class _SlackV1ViewState extends State<SlackV1View> {
                           ],
                         ),
                       ),
-                      _buildBotRow(name: 'Dev Researcher', role: 'Vector RAG', statusColor: slackTeal, isOnline: true, mentionTag: '@researcher'),
-                      _buildBotRow(name: 'Lead Coordinator', role: 'Gemini 3.8', statusColor: slackTeal, isOnline: true, mentionTag: '@lead-agent'),
-                      _buildBotRow(name: 'Staff Scribe', role: 'Compactor', statusColor: slackTeal, isOnline: true, mentionTag: '@scribe'),
+                      _buildBotRow(name: 'Dev Researcher', role: 'Vector RAG', statusColor: archiveTeal, isOnline: true, mentionTag: '@researcher'),
+                      _buildBotRow(name: 'Lead Coordinator', role: 'Gemini 3.8', statusColor: archiveTeal, isOnline: true, mentionTag: '@lead-agent'),
+                      _buildBotRow(name: 'Staff Scribe', role: 'Compactor', statusColor: archiveTeal, isOnline: true, mentionTag: '@scribe'),
                       _buildBotRow(name: 'Sentry Alerts', role: 'Sensory Webhook', statusColor: Colors.amber, isOnline: true),
                       _buildBotRow(name: 'Eggdrop Bot', role: 'IRC 1988', statusColor: Colors.grey, isOnline: false, mentionTag: '@eggdrop'),
                     ],
@@ -458,13 +458,13 @@ class _SlackV1ViewState extends State<SlackV1View> {
           Expanded(
             child: Column(
               children: [
-                // Top Universal Search Bar (Classic Slack 1.0 Top Bar)
+                // Top Universal Search Bar (Classic Top Bar)
                 Container(
                   height: 54,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(color: slackBorder, width: 1)),
+                    border: Border(bottom: BorderSide(color: archiveBorder, width: 1)),
                   ),
                   child: Row(
                     children: [
@@ -539,7 +539,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(color: slackBorder, width: 1)),
+                    border: Border(bottom: BorderSide(color: archiveBorder, width: 1)),
                   ),
                   child: Row(
                     children: [
@@ -554,7 +554,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
                       const SizedBox(width: 8),
                       const Icon(Icons.star_border, size: 16, color: Color(0xFF616061)),
                       const SizedBox(width: 16),
-                      Container(height: 16, width: 1, color: slackBorder),
+                      Container(height: 16, width: 1, color: archiveBorder),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
@@ -649,7 +649,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
                           itemCount: widget.messages.length,
                           itemBuilder: (context, index) {
                             final msg = widget.messages[index];
-                            return _SlackMessageItem(
+                            return _VectorMessageItem(
                               message: msg,
                               onSelect: widget.onSelectMessage != null
                                   ? () => widget.onSelectMessage!(msg)
@@ -680,12 +680,12 @@ class _SlackV1ViewState extends State<SlackV1View> {
                     ),
                   ),
 
-                // Classic Slack Message Composer
+                // Vector Archive Message Composer
                 Container(
                   padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(top: BorderSide(color: slackBorder, width: 1)),
+                    border: Border(top: BorderSide(color: archiveBorder, width: 1)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -707,7 +707,7 @@ class _SlackV1ViewState extends State<SlackV1View> {
                       ),
                       const SizedBox(height: 8),
 
-                      // Input Box with Slack border
+                      // Input Box with Archive border
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -1006,11 +1006,11 @@ class _SlackV1ViewState extends State<SlackV1View> {
   }
 }
 
-class _SlackMessageItem extends StatelessWidget {
+class _VectorMessageItem extends StatelessWidget {
   final Message message;
   final VoidCallback? onSelect;
 
-  const _SlackMessageItem({
+  const _VectorMessageItem({
     required this.message,
     this.onSelect,
   });

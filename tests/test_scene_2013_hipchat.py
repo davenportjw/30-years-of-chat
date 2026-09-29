@@ -1,4 +1,4 @@
-"""E2E Integration Tests for Scene 4 (2013 — The Searchable Vector Archive: Slack 1.0 & HipChat).
+"""E2E Integration Tests for Scene 4 (2013 — The Searchable Vector Archive: HipChat & Cloud Archive).
 
 Architectural Invariants Verified on Deployed Cloud Run Service:
 - Persistent Cloud Log (chan-incident-postmortem, 72h retention)
@@ -13,7 +13,7 @@ import pytest
 import httpx
 
 INCIDENT_CHANNEL = "chan-incident-postmortem"
-ERA_ID = "era-2013-slack"
+ERA_ID = "era-2013-hipchat"
 
 
 @pytest.mark.asyncio
@@ -23,11 +23,11 @@ async def test_scene_2013_channel_properties(client: httpx.AsyncClient):
     assert resp.status_code == 200
     channels = resp.json()
 
-    slack_ch = next((c for c in channels if c["id"] == INCIDENT_CHANNEL), None)
-    assert slack_ch is not None
-    assert slack_ch["era_id"] == ERA_ID
-    assert slack_ch["retention_hours"] == 72
-    assert "P0 Production Outage" in slack_ch["topic"]
+    hipchat_ch = next((c for c in channels if c["id"] == INCIDENT_CHANNEL), None)
+    assert hipchat_ch is not None
+    assert hipchat_ch["era_id"] == ERA_ID
+    assert hipchat_ch["retention_hours"] == 72
+    assert "P0 Production Outage" in hipchat_ch["topic"]
 
 
 @pytest.mark.asyncio

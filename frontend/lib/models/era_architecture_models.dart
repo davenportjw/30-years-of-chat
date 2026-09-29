@@ -580,12 +580,12 @@ resp, err := gemini.ChatCompletion(ctx, &gemini.ChatRequest{
     ),
 
     // ------------------------------------------------------------------------
-    // 3. 2006: Scoped Rooms & Context Fencing (Campfire & Jabber)
+    // 3. 2006: Scoped Rooms & Context Fencing (Jabber & Scoped Rooms)
     // ------------------------------------------------------------------------
-    'era-2006-campfire': const EraArchitecture(
-      eraId: 'era-2006-campfire',
+    'era-2006-jabber': const EraArchitecture(
+      eraId: 'era-2006-jabber',
       year: 2006,
-      title: '2006: Scoped Rooms & Context Fencing (Campfire & Jabber)',
+      title: '2006: Scoped Rooms & Context Fencing (Jabber & Scoped Rooms)',
       cognitiveConcept: 'Context Fencing & Role-Based Isolation',
       summary: 'Domain-partitioned room memory enforced by role-based access control (RBAC). Restricts conversational context and retrieval strictly to authorized room perimeters.',
       primaryCodeSnippet: '''// ContextFence enforces room-level memory boundaries and RBAC permissions.
@@ -719,12 +719,12 @@ rows, err := db.QueryContext(ctx, query, channelID)''',
     ),
 
     // ------------------------------------------------------------------------
-    // 4. 2013: Searchable Vector Archive (Slack 1.0 & HipChat)
+    // 4. 2013: Searchable Vector Archive (HipChat & Cloud Archive)
     // ------------------------------------------------------------------------
-    'era-2013-slack': const EraArchitecture(
-      eraId: 'era-2013-slack',
+    'era-2013-hipchat': const EraArchitecture(
+      eraId: 'era-2013-hipchat',
       year: 2013,
-      title: '2013: Searchable Vector Archive (Slack 1.0 & HipChat)',
+      title: '2013: Searchable Vector Archive (HipChat & Cloud Archive)',
       cognitiveConcept: 'Long-Term Memory (LTM) & Vector Search RAG',
       summary: 'Persistent append-only event storage with dense vector indexing. Ingests events, computes semantic embeddings, and uses cosine distance queries to recall historical precedents for inference.',
       primaryCodeSnippet: '''// VectorRAG executes cosine distance similarity searches over Long-Term Memory.
@@ -834,12 +834,12 @@ LIMIT 3;''',
     ),
 
     // ------------------------------------------------------------------------
-    // 5. 2017: Threads & Scribe Compaction (Slack Threads & Discord)
+    // 5. 2017: Threads & Scribe Compaction (Discord Forums & Threaded Chat)
     // ------------------------------------------------------------------------
     'era-2017-threads': const EraArchitecture(
       eraId: 'era-2017-threads',
       year: 2017,
-      title: '2017: Threads & Scribe Compaction (Slack Threads & Discord)',
+      title: '2017: Threads & Scribe Compaction (Discord Forums & Threaded Chat)',
       cognitiveConcept: 'Subagent Scratchpads & Hierarchical Compaction',
       summary: 'Sub-task context isolation via threaded branching and Scribe state compaction. Specialist agents deliberate in isolated thread scratchpads, which a Scribe condenses into structured checkpoints for the main channel.',
       primaryCodeSnippet: '''// ScribeCompactor compresses thread scratchpad dialogue into structured state summaries.
@@ -1140,8 +1140,8 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
       failureModeDescription: 'Stale away messages or unrefreshed presence indicators cause the agent to remain trapped in an auto-responder persona, misunderstanding user prompts.',
       verdict2026: 'Foundational for point-to-point human-agent DM channels, but must be augmented with cross-session semantic indexing.',
     ),
-    'era-2006-campfire': const EraTradeoff(
-      eraId: 'era-2006-campfire',
+    'era-2006-jabber': const EraTradeoff(
+      eraId: 'era-2006-jabber',
       year: 2006,
       title: '2006 Scoped Rooms & Context Fencing',
       modernAnalogy: 'Multi-tenant partitioned agent workspaces with strict RBAC memory guards and perimeter fencing.',
@@ -1159,8 +1159,8 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
       failureModeDescription: 'Overly restrictive fences block legitimate cross-agent collaboration, while unauthorized access triggers quarantine rejections that halt execution.',
       verdict2026: 'Mandatory enterprise security baseline for enterprise agent perimeters, but requires federated retrieval bridges for cross-team tasks.',
     ),
-    'era-2013-slack': const EraTradeoff(
-      eraId: 'era-2013-slack',
+    'era-2013-hipchat': const EraTradeoff(
+      eraId: 'era-2013-hipchat',
       year: 2013,
       title: '2013 Searchable Vector Archive',
       modernAnalogy: 'Vector Database RAG over persistent cloud datastores (e.g. BigQuery Vector Search with Cosine Distance).',
@@ -1247,10 +1247,10 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
     ),
     const ShowcaseScriptStep(
       id: 'showcase-era3-trigger-quarantine',
-      eraId: 'era-2006-campfire',
+      eraId: 'era-2006-jabber',
       stepNumber: 3,
       title: 'Trigger RBAC Firewall Quarantine',
-      speakerScript: 'Campfire in 2006 brought structured project rooms. Here, context fencing is enforced by a role-based firewall. When an unprivileged participant attempts to query or leak data from a confidential domain, our Context Firewall immediately quarantines the request.',
+      speakerScript: 'Jabber in 2006 brought structured project rooms. Here, context fencing is enforced by a role-based firewall. When an unprivileged participant attempts to query or leak data from a confidential domain, our Context Firewall immediately quarantines the request.',
       audienceObservation: 'The telemetry log emits a FIREWALL_QUARANTINE span. The attempt to bridge cross-tenant memory is blocked at the perimeter before any retrieval occurs.',
       actionLabel: 'Trigger RBAC Firewall Quarantine',
       actionId: 'action-era3-trigger-quarantine',
@@ -1259,10 +1259,10 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
     ),
     const ShowcaseScriptStep(
       id: 'showcase-era4-vector-query',
-      eraId: 'era-2013-slack',
+      eraId: 'era-2013-hipchat',
       stepNumber: 4,
       title: 'Run Vector RAG Query',
-      speakerScript: 'With Slack 1.0 in 2013, we transition from ephemeral buffers to true Long-Term Memory. Every incident and ADR is vectorized into persistent storage. When a production alert fires, our agent queries the vector index using exact cosine distance to retrieve historical precedents in sub-10ms.',
+      speakerScript: 'With HipChat in 2013, we transition from ephemeral buffers to true Long-Term Memory. Every incident and ADR is vectorized into persistent storage. When a production alert fires, our agent queries the vector index using exact cosine distance to retrieve historical precedents in sub-10ms.',
       audienceObservation: 'See the VECTOR_SEARCH span fire. The vector engine returns the exact historical ADR with distance metrics, grounding the Gemini 3.8 response in immutable long-term memory.',
       actionLabel: 'Run Vector RAG Query',
       actionId: 'action-era4-vector-query',
@@ -1274,7 +1274,7 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
       eraId: 'era-2017-threads',
       stepNumber: 5,
       title: 'Compact Thread Context (-96%)',
-      speakerScript: 'By 2017, Slack threads enabled subagent scratchpads. Instead of polluting the root stream with thousands of diagnostic tokens, our specialist agents deliberate in an isolated thread. Upon conclusion, our Scribe agent performs hierarchical state compaction.',
+      speakerScript: 'By 2017, threaded chat enabled subagent scratchpads. Instead of polluting the root stream with thousands of diagnostic tokens, our specialist agents deliberate in an isolated thread. Upon conclusion, our Scribe agent performs hierarchical state compaction.',
       audienceObservation: 'Watch the SCRIBE_COMPACT span record a 96% token reduction. A 4,500-token debugging dialogue is rolled up into a dense 180-token structured checkpoint posted to the main channel.',
       actionLabel: 'Compact Thread Context (-96%)',
       actionId: 'action-era5-compact-thread',
@@ -1303,7 +1303,7 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
     }
 
     // Support project aliases
-    if (eraId == 'era-2017-slack-threads' || eraId.contains('2017')) {
+    if (eraId == 'era-2017-threads' || eraId.contains('2017')) {
       return _catalog['era-2017-threads']!;
     }
     if (eraId == 'era-2026-mesh' || eraId.contains('2026')) {
@@ -1315,11 +1315,11 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
     if (eraId.contains('1997') || eraId.contains('aim')) {
       return _catalog['era-1997-aim']!;
     }
-    if (eraId.contains('2006') || eraId.contains('campfire')) {
-      return _catalog['era-2006-campfire']!;
+    if (eraId.contains('2006') || eraId.contains('jabber')) {
+      return _catalog['era-2006-jabber']!;
     }
-    if (eraId.contains('2013') || eraId.contains('slack')) {
-      return _catalog['era-2013-slack']!;
+    if (eraId.contains('2013') || eraId.contains('hipchat')) {
+      return _catalog['era-2013-hipchat']!;
     }
 
     return _catalog['era-1988-irc']!;
@@ -1332,7 +1332,7 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
       return eraTradeoffs[eraId]!;
     }
 
-    if (eraId == 'era-2017-slack-threads' || eraId.contains('2017')) {
+    if (eraId == 'era-2017-threads' || eraId.contains('2017')) {
       return eraTradeoffs['era-2017-threads']!;
     }
     if (eraId == 'era-2026-mesh' || eraId.contains('2026')) {
@@ -1344,11 +1344,11 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
     if (eraId.contains('1997') || eraId.contains('aim')) {
       return eraTradeoffs['era-1997-aim']!;
     }
-    if (eraId.contains('2006') || eraId.contains('campfire')) {
-      return eraTradeoffs['era-2006-campfire']!;
+    if (eraId.contains('2006') || eraId.contains('jabber')) {
+      return eraTradeoffs['era-2006-jabber']!;
     }
-    if (eraId.contains('2013') || eraId.contains('slack')) {
-      return eraTradeoffs['era-2013-slack']!;
+    if (eraId.contains('2013') || eraId.contains('hipchat')) {
+      return eraTradeoffs['era-2013-hipchat']!;
     }
 
     return eraTradeoffs['era-1988-irc']!;
@@ -1358,8 +1358,8 @@ resp, _ := gemini.Generate(ctx, finalPrompt)''',
   static List<EraArchitecture> get allArchitectures => [
     _catalog['era-1988-irc']!,
     _catalog['era-1997-aim']!,
-    _catalog['era-2006-campfire']!,
-    _catalog['era-2013-slack']!,
+    _catalog['era-2006-jabber']!,
+    _catalog['era-2013-hipchat']!,
     _catalog['era-2017-threads']!,
     _catalog['era-2026-agent-mesh']!,
   ];

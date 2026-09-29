@@ -106,8 +106,8 @@ class _EraTradeoffsScriptViewState extends State<EraTradeoffsScriptView> {
     final allEras = [
       {'id': 'era-1988-irc', 'label': '1988 IRC'},
       {'id': 'era-1997-aim', 'label': '1997 AIM'},
-      {'id': 'era-2006-campfire', 'label': '2006 Campfire'},
-      {'id': 'era-2013-slack', 'label': '2013 Slack'},
+      {'id': 'era-2006-jabber', 'label': '2006 Jabber'},
+      {'id': 'era-2013-hipchat', 'label': '2013 HipChat'},
       {'id': 'era-2017-threads', 'label': '2017 Threads'},
       {'id': 'era-2026-agent-mesh', 'label': '2026 Mesh'},
     ];

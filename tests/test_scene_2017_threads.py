@@ -1,4 +1,4 @@
-"""E2E Integration Tests for Scene 5 (2017 — Threads & Scribe Compaction: Slack Threads & Discord Forums).
+"""E2E Integration Tests for Scene 5 (2017 — Threads & Scribe Compaction: Discord Forums & Threaded Chat).
 
 Architectural Invariants Verified on Deployed Cloud Run Service:
 - Thread Branching & Collapsible Scratchpads (chan-architecture-rfc)

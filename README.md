@@ -21,16 +21,16 @@ A persistent top navigation header (`TopEraBar`) features a **Top-Left Era Dropd
    - **Visuals**: Classic Windows 95/98 beveled window chrome, navy title bar, AIM Buddy List with active agent contacts, and sunken direct chat log.
    - **Concept**: Working Memory & Attentional State.
    - **Mechanisms**: 1:1 conversation isolation; agent buddy presence (`available`, `away`, `typing`) controls attentional liveness; away messages prime agent persona and system prompts.
-3. **2006 — Scoped Rooms & Context Fencing (Campfire & Jabber)**:
-   - **Visuals**: 37signals Web 2.0 clean cream aesthetic, room tabs (`#general-lobby`, `#engineering`, `#billing-confidential`), sound effect toggle, and yellow message fade.
+3. **2006 — Scoped Rooms & Context Fencing (Jabber & Scoped Rooms)**:
+   - **Visuals**: Web 2.0 clean cream aesthetic, room tabs (`#general-lobby`, `#engineering`, `#billing-confidential`), sound effect toggle, and yellow message fade.
    - **Concept**: Search Isolation & Role-Based Context Fencing.
    - **Mechanisms**: Domain-partitioned rooms with role quarantine prevent prompt contamination and associative bleed between projects via `CONTEXT QUARANTINE WARNING` cards.
-4. **2013 — The Searchable Vector Archive (Slack 1.0 & HipChat)**:
+4. **2013 — The Searchable Vector Archive (HipChat & Cloud Archive)**:
    - **Visuals**: Classic aubergine sidebar (`#4A154B`), clean white transcript, and top universal search bar.
    - **Concept**: Long-Term Memory (LTM) & Vector Search RAG.
    - **Mechanisms**: Append-only persistent cloud history; agents perform exact cosine vector similarity retrieval on historical ADRs and incidents with real cosine distance metrics.
-5. **2017 — Threads & Scribe Compaction (Slack Threads & Discord Forums)**:
-   - **Visuals**: Modern dark Slack workspace with collapsible 430px right-hand Thread Scratchpad.
+5. **2017 — Threads & Scribe Compaction (Discord Forums & Threaded Chat)**:
+   - **Visuals**: Modern dark workspace with collapsible 430px right-hand Thread Scratchpad.
    - **Concept**: Sub-Task Scratchpads & Hierarchical State Compaction.
    - **Mechanisms**: Sub-task scratchpads isolate complex investigations; a Scribe agent compresses resolved discussions into a dense state rollup (-96% token footprint).
 6. **2026 — Collaborative Multi-Agent Mesh (Agents of Chat Swarm)**:
@@ -259,8 +259,8 @@ uv run pytest -v
 # Run E2E tests for a specific scene
 uv run pytest tests/test_scene_1988_irc.py -v          # Scene 1: FIFO Eviction & Amnesia Trap
 uv run pytest tests/test_scene_1997_aim.py -v          # Scene 2: 1:1 Session Isolation & Presence
-uv run pytest tests/test_scene_2006_campfire.py -v     # Scene 3: Scoped Rooms & Context Fencing
-uv run pytest tests/test_scene_2013_slack.py -v        # Scene 4: Vector Search RAG & Webhooks
+uv run pytest tests/test_scene_2006_jabber.py -v     # Scene 3: Scoped Rooms & Context Fencing
+uv run pytest tests/test_scene_2013_hipchat.py -v    # Scene 4: Vector Search RAG & Webhooks
 uv run pytest tests/test_scene_2017_threads.py -v      # Scene 5: Sub-task Threads & Compaction
 uv run pytest tests/test_scene_2026_agent_mesh.py -v   # Scene 6: Dual-Layer Memory, Dreaming & Crystalline Recall
 uv run pytest tests/test_web_deployment.py -v          # Web Core: Assets, CORS, Schemas, WS

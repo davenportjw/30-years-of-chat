@@ -10,8 +10,8 @@ void main() {
       final expectedEraIds = [
         'era-1988-irc',
         'era-1997-aim',
-        'era-2006-campfire',
-        'era-2013-slack',
+        'era-2006-jabber',
+        'era-2013-hipchat',
         'era-2017-threads',
         'era-2026-agent-mesh',
       ];
@@ -67,11 +67,11 @@ void main() {
         equals('1:1 Session Working Memory & Attentional Liveness'),
       );
       expect(
-        EraArchitectureCatalog.getArchitecture('era-2006-campfire').cognitiveConcept,
+        EraArchitectureCatalog.getArchitecture('era-2006-jabber').cognitiveConcept,
         equals('Context Fencing & Role-Based Isolation'),
       );
       expect(
-        EraArchitectureCatalog.getArchitecture('era-2013-slack').cognitiveConcept,
+        EraArchitectureCatalog.getArchitecture('era-2013-hipchat').cognitiveConcept,
         equals('Long-Term Memory (LTM) & Vector Search RAG'),
       );
       expect(
@@ -85,14 +85,14 @@ void main() {
     });
 
     test('Catalog resolves aliases and unknown eras gracefully', () {
-      final arch2017Alias = EraArchitectureCatalog.getArchitecture('era-2017-slack-threads');
+      final arch2017Alias = EraArchitectureCatalog.getArchitecture('era-2017-threads');
       expect(arch2017Alias.eraId, equals('era-2017-threads'));
 
       final arch2026Alias = EraArchitectureCatalog.getArchitecture('era-2026-mesh');
       expect(arch2026Alias.eraId, equals('era-2026-agent-mesh'));
 
-      final archSubstring = EraArchitectureCatalog.getArchitecture('campfire-room');
-      expect(archSubstring.eraId, equals('era-2006-campfire'));
+      final archSubstring = EraArchitectureCatalog.getArchitecture('jabber-room');
+      expect(archSubstring.eraId, equals('era-2006-jabber'));
 
       final fallback = EraArchitectureCatalog.getArchitecture('unknown-era');
       expect(fallback.eraId, equals('era-1988-irc'));
@@ -181,8 +181,8 @@ void main() {
       final expectedEras = [
         'era-1988-irc',
         'era-1997-aim',
-        'era-2006-campfire',
-        'era-2013-slack',
+        'era-2006-jabber',
+        'era-2013-hipchat',
         'era-2017-threads',
         'era-2026-agent-mesh',
       ];
@@ -215,7 +215,7 @@ void main() {
       }
 
       // Test alias resolution in getTradeoff
-      expect(EraArchitectureCatalog.getTradeoff('era-2017-slack-threads').eraId, equals('era-2017-threads'));
+      expect(EraArchitectureCatalog.getTradeoff('era-2017-threads').eraId, equals('era-2017-threads'));
       expect(EraArchitectureCatalog.getTradeoff('era-2026-mesh').eraId, equals('era-2026-agent-mesh'));
       expect(EraArchitectureCatalog.getTradeoff('aim-dm').eraId, equals('era-1997-aim'));
       expect(EraArchitectureCatalog.getTradeoff('unknown').eraId, equals('era-1988-irc'));
@@ -239,13 +239,13 @@ void main() {
         },
         'action-era3-trigger-quarantine': {
           'label': 'Trigger RBAC Firewall Quarantine',
-          'eraId': 'era-2006-campfire',
+          'eraId': 'era-2006-jabber',
           'spanAction': 'FIREWALL_QUARANTINE',
           'isDestructive': true,
         },
         'action-era4-vector-query': {
           'label': 'Run Vector RAG Query',
-          'eraId': 'era-2013-slack',
+          'eraId': 'era-2013-hipchat',
           'spanAction': 'VECTOR_SEARCH',
           'isDestructive': false,
         },

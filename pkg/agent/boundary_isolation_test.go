@@ -185,9 +185,9 @@ func TestEra2_AIM_1on1SessionBoundary(t *testing.T) {
 	}
 }
 
-// TestEra3_Campfire_RoleFirewallQuarantine validates the cognitive boundary of Era 3 (2006 Campfire):
+// TestEra3_Jabber_RoleFirewallQuarantine validates the cognitive boundary of Era 3 (2006 Scoped Rooms):
 // Role-based context firewall enforces AllowedRoles and rejects unauthorized callers.
-func TestEra3_Campfire_RoleFirewallQuarantine(t *testing.T) {
+func TestEra3_Jabber_RoleFirewallQuarantine(t *testing.T) {
 	ctx := context.Background()
 	store := storage.NewInMemStore()
 	defer store.Close()
@@ -195,7 +195,7 @@ func TestEra3_Campfire_RoleFirewallQuarantine(t *testing.T) {
 		t.Fatalf("failed to seed store: %v", err)
 	}
 
-	channelID := "chan-2006-campfire" // Executive Apollo Billing room
+	channelID := "chan-2006-jabber-billing" // Executive Apollo Billing room
 	ch, err := store.GetChannel(ctx, channelID)
 	if err != nil {
 		t.Fatalf("channel %s not found: %v", channelID, err)
@@ -222,7 +222,7 @@ func TestEra3_Campfire_RoleFirewallQuarantine(t *testing.T) {
 	}
 
 	// Verify prompt directive enforces room topic boundary
-	era, _ := store.GetEra(ctx, "era-2006-campfire")
+	era, _ := store.GetEra(ctx, "era-2006-jabber")
 	pCtx := &PromptContext{
 		Era: era,
 	}
@@ -232,10 +232,10 @@ func TestEra3_Campfire_RoleFirewallQuarantine(t *testing.T) {
 	}
 }
 
-// TestEra4_SlackV1_VectorRAGScoping validates the cognitive boundary of Era 4 (2013 Slack 1.0):
+// TestEra4_HipChat_VectorRAGScoping validates the cognitive boundary of Era 4 (2013 Searchable Vector Archive):
 // Long-Term Memory retrieval is grounded strictly in Spanner vector similarity,
 // filtering by cosine distance to prevent hallucinations or context dilution.
-func TestEra4_SlackV1_VectorRAGScoping(t *testing.T) {
+func TestEra4_HipChat_VectorRAGScoping(t *testing.T) {
 	ctx := context.Background()
 	store := storage.NewInMemStore()
 	defer store.Close()
@@ -268,7 +268,7 @@ func TestEra4_SlackV1_VectorRAGScoping(t *testing.T) {
 
 	// Verify prompt grounding directive
 	researcher, _ := GetRoleByID("researcher-agent")
-	era, _ := store.GetEra(ctx, "era-2013-slack")
+	era, _ := store.GetEra(ctx, "era-2013-hipchat")
 	pCtx := &PromptContext{
 		Era: era,
 	}
@@ -278,10 +278,10 @@ func TestEra4_SlackV1_VectorRAGScoping(t *testing.T) {
 	}
 }
 
-// TestEra5_SlackThreads_SubTaskIsolation validates the cognitive boundary of Era 5 (2017 Threads):
+// TestEra5_Threads_SubTaskIsolation validates the cognitive boundary of Era 5 (2017 Threads):
 // Thread subagent investigations stay strictly inside thread scratchpads, shielding the
 // root channel token budget until Scribe issues an explicit compaction rollup.
-func TestEra5_SlackThreads_SubTaskIsolation(t *testing.T) {
+func TestEra5_Threads_SubTaskIsolation(t *testing.T) {
 	ctx := context.Background()
 	store := storage.NewInMemStore()
 	defer store.Close()

@@ -73,7 +73,7 @@ func TestBuildAgentPrompt(t *testing.T) {
 		Era: &storage.Era{
 			Year:          2017,
 			Name:          "Threads & Scribe Compaction",
-			Platform:      "Slack Threads",
+			Platform:      "Threaded Chat",
 			MemoryConcept: "Sub-Task Isolation",
 			Description:   "Thread scratchpads preserve main channel context.",
 		},
@@ -157,26 +157,26 @@ func TestBuildAgentPrompt(t *testing.T) {
 		t.Errorf("IRC system prompt missing volatile RAM directive: %s", sysIRC)
 	}
 
-	// Verify 2006 Campfire directive
+	// Verify 2006 Jabber directive
 	chCamp := storage.Channel{
-		ID:    "chan-2006-campfire",
-		EraID: "era-2006-campfire",
-		Name:  "2006-campfire-billing",
+		ID:    "chan-2006-jabber-billing",
+		EraID: "era-2006-jabber",
+		Name:  "2006-jabber-billing",
 	}
 	sysCamp, _ := BuildAgentPrompt(LeadCoordinator, chCamp, nil, nil, "Hello", nil)
 	if !strings.Contains(sysCamp, "Scoped Room & Topic Boundary") {
-		t.Errorf("Campfire system prompt missing scoped room directive: %s", sysCamp)
+		t.Errorf("Jabber system prompt missing scoped room directive: %s", sysCamp)
 	}
 
-	// Verify 2013 Slack directive
-	chSlack := storage.Channel{
-		ID:    "chan-2013-slack",
-		EraID: "era-2013-slack",
-		Name:  "2013-slack",
+	// Verify 2013 HipChat directive
+	chHipchat := storage.Channel{
+		ID:    "chan-2013-hipchat",
+		EraID: "era-2013-hipchat",
+		Name:  "2013-hipchat",
 	}
-	sysSlack, _ := BuildAgentPrompt(DevResearcher, chSlack, nil, nil, "Hello", nil)
-	if !strings.Contains(sysSlack, "Long-Term Memory Grounding Boundary") {
-		t.Errorf("Slack system prompt missing grounding directive: %s", sysSlack)
+	sysHipchat, _ := BuildAgentPrompt(DevResearcher, chHipchat, nil, nil, "Hello", nil)
+	if !strings.Contains(sysHipchat, "Long-Term Memory Grounding Boundary") {
+		t.Errorf("HipChat system prompt missing grounding directive: %s", sysHipchat)
 	}
 
 	// Verify 2026 Mesh directive
@@ -456,62 +456,62 @@ func TestMemoryTelemetryBroadcasting(t *testing.T) {
 		t.Errorf("expected payload with evicted message snippet")
 	}
 
-	// 4. Verify ATTENTIONAL_SHIFT and FIREWALL_EVAL / FIREWALL_QUARANTINE in 2006 Campfire
-	// DevResearcher is denied in chan-2006-campfire (AllowedRoles: lead-agent, scribe-agent, jason)
-	_, _ = orch.TriggerAgentResponse(ctx, "chan-2006-campfire", "", DevResearcher, "Query billing ledger")
+	// 4. Verify ATTENTIONAL_SHIFT and FIREWALL_EVAL / FIREWALL_QUARANTINE in 2006 Jabber
+	// DevResearcher is denied in chan-2006-jabber-billing (AllowedRoles: lead-agent, scribe-agent, jason)
+	_, _ = orch.TriggerAgentResponse(ctx, "chan-2006-jabber-billing", "", DevResearcher, "Query billing ledger")
 
 	shifts := getSpansByAction("ATTENTIONAL_SHIFT")
-	var campfireShift *storage.TelemetrySpan
+	var jabberShift *storage.TelemetrySpan
 	for _, s := range shifts {
-		if s.ChannelID == "chan-2006-campfire" && s.Metrics["agent_role"] == DevResearcher.ID {
+		if s.ChannelID == "chan-2006-jabber-billing" && s.Metrics["agent_role"] == DevResearcher.ID {
 			copied := s
-			campfireShift = &copied
+			jabberShift = &copied
 			break
 		}
 	}
-	if campfireShift == nil {
-		t.Fatalf("expected ATTENTIONAL_SHIFT telemetry span for DevResearcher in chan-2006-campfire")
+	if jabberShift == nil {
+		t.Fatalf("expected ATTENTIONAL_SHIFT telemetry span for DevResearcher in chan-2006-jabber-billing")
 	}
-	if campfireShift.ActiveStep != 2 {
-		t.Errorf("expected ATTENTIONAL_SHIFT ActiveStep 2, got %d", campfireShift.ActiveStep)
+	if jabberShift.ActiveStep != 2 {
+		t.Errorf("expected ATTENTIONAL_SHIFT ActiveStep 2, got %d", jabberShift.ActiveStep)
 	}
-	if campfireShift.Title != "Attentional State Shift: Agent Typing" {
-		t.Errorf("expected Title 'Attentional State Shift: Agent Typing', got %s", campfireShift.Title)
+	if jabberShift.Title != "Attentional State Shift: Agent Typing" {
+		t.Errorf("expected Title 'Attentional State Shift: Agent Typing', got %s", jabberShift.Title)
 	}
 
 	firewallEvals := getSpansByAction("FIREWALL_EVAL")
-	var campfireEval *storage.TelemetrySpan
+	var jabberEval *storage.TelemetrySpan
 	for _, s := range firewallEvals {
-		if s.ChannelID == "chan-2006-campfire" {
+		if s.ChannelID == "chan-2006-jabber-billing" {
 			copied := s
-			campfireEval = &copied
+			jabberEval = &copied
 			break
 		}
 	}
-	if campfireEval == nil {
-		t.Fatalf("expected FIREWALL_EVAL telemetry span for chan-2006-campfire")
+	if jabberEval == nil {
+		t.Fatalf("expected FIREWALL_EVAL telemetry span for chan-2006-jabber-billing")
 	}
-	if campfireEval.ActiveStep != 3 { // ActiveStep 3 for 2006
-		t.Errorf("expected FIREWALL_EVAL ActiveStep 3 for 2006, got %d", campfireEval.ActiveStep)
+	if jabberEval.ActiveStep != 3 { // ActiveStep 3 for 2006
+		t.Errorf("expected FIREWALL_EVAL ActiveStep 3 for 2006, got %d", jabberEval.ActiveStep)
 	}
 
 	firewallQuarantines := getSpansByAction("FIREWALL_QUARANTINE")
-	var campfireQuarantine *storage.TelemetrySpan
+	var jabberQuarantine *storage.TelemetrySpan
 	for _, s := range firewallQuarantines {
-		if s.ChannelID == "chan-2006-campfire" {
+		if s.ChannelID == "chan-2006-jabber-billing" {
 			copied := s
-			campfireQuarantine = &copied
+			jabberQuarantine = &copied
 			break
 		}
 	}
-	if campfireQuarantine == nil {
-		t.Fatalf("expected FIREWALL_QUARANTINE telemetry span for chan-2006-campfire")
+	if jabberQuarantine == nil {
+		t.Fatalf("expected FIREWALL_QUARANTINE telemetry span for chan-2006-jabber-billing")
 	}
-	if campfireQuarantine.ActiveStep != 3 { // ActiveStep 3 for 2006
-		t.Errorf("expected FIREWALL_QUARANTINE ActiveStep 3 for 2006, got %d", campfireQuarantine.ActiveStep)
+	if jabberQuarantine.ActiveStep != 3 { // ActiveStep 3 for 2006
+		t.Errorf("expected FIREWALL_QUARANTINE ActiveStep 3 for 2006, got %d", jabberQuarantine.ActiveStep)
 	}
-	if campfireQuarantine.Title != "Context Fencing Quarantine: Access Denied" {
-		t.Errorf("expected Title 'Context Fencing Quarantine: Access Denied', got %s", campfireQuarantine.Title)
+	if jabberQuarantine.Title != "Context Fencing Quarantine: Access Denied" {
+		t.Errorf("expected Title 'Context Fencing Quarantine: Access Denied', got %s", jabberQuarantine.Title)
 	}
 
 	// 5. Verify ATTENTIONAL_SHIFT for 1997 AIM (ActiveStep 1)
@@ -570,15 +570,15 @@ func TestMemoryTelemetryBroadcasting(t *testing.T) {
 		t.Errorf("expected zero vector searches in 1988 IRC and 1997 AIM, but count grew from %d to %d", priorVsCount, postVsCount)
 	}
 
-	// 9. Verify Scoped Vector Search in Campfire Eng
-	_, _ = orch.TriggerAgentResponse(ctx, "chan-2006-campfire-eng", "", DevResearcher, "What is past history on vector index?")
+	// 9. Verify Scoped Vector Search in Jabber Eng
+	_, _ = orch.TriggerAgentResponse(ctx, "chan-2006-jabber-eng", "", DevResearcher, "What is past history on vector index?")
 	newVs := getSpansByAction("VECTOR_SEARCH")
 	if len(newVs) <= priorVsCount {
-		t.Fatalf("expected new VECTOR_SEARCH span for campfire eng")
+		t.Fatalf("expected new VECTOR_SEARCH span for jabber eng")
 	}
 	campVs := newVs[len(newVs)-1]
-	if campVs.Metrics["search_scope"] != "chan-2006-campfire-eng" {
-		t.Errorf("expected search_scope to be chan-2006-campfire-eng, got %v", campVs.Metrics["search_scope"])
+	if campVs.Metrics["search_scope"] != "chan-2006-jabber-eng" {
+		t.Errorf("expected search_scope to be chan-2006-jabber-eng, got %v", campVs.Metrics["search_scope"])
 	}
 
 	// 10. Verify Fast-Path Crystalline Recall in 2026 Mesh / #product-launch-ga
@@ -1186,4 +1186,75 @@ func TestHandleUserMessage_2026RoleRouting(t *testing.T) {
 	checkRole("@scribe check deployment stack status", StaffArchitectScribe.ID)
 	checkRole("@researcher check historical vector index", DevResearcher.ID)
 }
+
+func Test2026SwarmLeadDelegation(t *testing.T) {
+	ctx := context.Background()
+	store := storage.NewInMemStore()
+
+	ch := storage.Channel{
+		ID:           "chan-product-launch",
+		EraID:        "era-2026-agent-mesh",
+		Name:         "2026-agent-mesh",
+		Topic:        "Swarm Coordination",
+		SystemPrompt: "Agile delivery",
+	}
+	if err := store.CreateChannel(ctx, ch); err != nil {
+		t.Fatalf("CreateChannel failed: %v", err)
+	}
+
+	var mu sync.Mutex
+	calledRoles := make(map[string]bool)
+
+	broadcaster := func(event string, payload interface{}) {
+		mu.Lock()
+		defer mu.Unlock()
+		if event == "agent_typing" {
+			if m, ok := payload.(map[string]string); ok {
+				calledRoles[m["agent_id"]] = true
+			}
+		} else if event == "presence_updated" {
+			if pres, ok := payload.(storage.AgentPresence); ok {
+				calledRoles[pres.AgentID] = true
+			}
+		} else if event == "new_message" {
+			if msg, ok := payload.(storage.Message); ok {
+				calledRoles[msg.SenderID] = true
+			}
+		}
+	}
+
+	gemini := NewGeminiClient(DefaultGeminiConfig())
+	orch := NewOrchestrator(store, gemini, broadcaster)
+
+	// Simulate Lead Coordinator finishing a turn and calling @researcher and @scribe
+	orch.delegate2026SwarmTurns(
+		"chan-product-launch",
+		"",
+		"Consensus confirmed. Calling @researcher to verify schemas and @scribe to record checkpoint.",
+		"Swarm consensus: Standardize deployment on Google Cloud Run",
+	)
+
+	// Wait for background goroutine to invoke swarm delegates
+	deadline := time.Now().Add(4 * time.Second)
+	for time.Now().Before(deadline) {
+		mu.Lock()
+		hasResearcher := calledRoles[DevResearcher.ID]
+		hasScribe := calledRoles[StaffArchitectScribe.ID]
+		mu.Unlock()
+		if hasResearcher && hasScribe {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if !calledRoles[DevResearcher.ID] {
+		t.Errorf("expected DevResearcher to be invoked in 2026 swarm delegation")
+	}
+	if !calledRoles[StaffArchitectScribe.ID] {
+		t.Errorf("expected StaffArchitectScribe to be invoked in 2026 swarm delegation")
+	}
+}
+
 

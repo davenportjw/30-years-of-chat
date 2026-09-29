@@ -8,9 +8,9 @@ import '../theme/sepia_theme.dart';
 /// 1. Prominent Era Selector Dropdown on the top-left highlighting:
 ///    - 1988: The Ephemeral Buffer (IRC & Unix talk) • Short-Term Memory
 ///    - 1997: The 1:1 Direct Session & Presence (AIM & ICQ) • Working Memory
-///    - 2006: Scoped Rooms & Context Fencing (Campfire) • Search Isolation
-///    - 2013: The Searchable Vector Archive (Slack 1.0) • Long-Term Memory (RAG)
-///    - 2017: Threads & Scribe Compaction (Slack Threads) • Sub-Task Scratchpads
+///    - 2006: Scoped Rooms & Context Fencing (Jabber) • Search Isolation
+///    - 2013: The Searchable Vector Archive (HipChat) • Long-Term Memory (RAG)
+///    - 2017: Threads & Scribe Compaction (Threaded Chat) • Sub-Task Scratchpads
 ///    - 2026: Collaborative Multi-Agent Mesh • Dual-Layer Memory & Dreaming
 /// 2. Quick Stepper buttons: `< Prev Era` and `Next Era >` for talk presentations.
 /// 3. Controls on the right:
@@ -60,11 +60,11 @@ class TopEraBar extends StatelessWidget implements PreferredSizeWidget {
       case 1997:
         return 'AIM & ICQ';
       case 2006:
-        return 'Campfire';
+        return 'Jabber';
       case 2013:
-        return 'Slack 1.0';
+        return 'HipChat';
       case 2017:
-        return 'Slack Threads';
+        return 'Threads';
       case 2026:
         return 'Agent Mesh';
       default:

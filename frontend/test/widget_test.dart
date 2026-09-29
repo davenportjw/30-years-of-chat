@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/chat_models.dart';
 import 'package:frontend/widgets/eras/aim_messenger_view.dart';
-import 'package:frontend/widgets/eras/campfire_view.dart';
-import 'package:frontend/widgets/eras/slack_threads_view.dart';
-import 'package:frontend/widgets/eras/slack_v1_view.dart';
+import 'package:frontend/widgets/eras/scoped_rooms_view.dart';
+import 'package:frontend/widgets/eras/threads_view.dart';
+import 'package:frontend/widgets/eras/vector_archive_view.dart';
 import 'package:frontend/widgets/eras/irc_terminal_view.dart';
 import 'package:frontend/widgets/eras/agent_mesh_view.dart';
 import 'package:frontend/widgets/top_era_bar.dart';
@@ -217,21 +217,21 @@ void main() {
     });
   });
 
-  group('CampfireView Widget Tests', () {
+  group('ScopedRoomsView Widget Tests', () {
     testWidgets('Renders rooms and switches room on click', (WidgetTester tester) async {
       final chanLobby = Channel(
-        id: 'chan-2006-campfire-lobby',
-        eraId: 'era-2006-campfire',
-        name: 'campfire-general-lobby',
+        id: 'chan-2006-jabber-lobby',
+        eraId: 'era-2006-jabber',
+        name: 'jabber-general-lobby',
         topic: 'General project chat',
         description: 'Lobby',
-        systemPrompt: 'Campfire assistant',
+        systemPrompt: 'Jabber assistant',
         retentionHours: 48,
       );
       final chanEng = Channel(
-        id: 'chan-2006-campfire-eng',
-        eraId: 'era-2006-campfire',
-        name: 'campfire-engineering',
+        id: 'chan-2006-jabber-eng',
+        eraId: 'era-2006-jabber',
+        name: 'jabber-engineering',
         topic: 'Engineering coordination',
         description: 'Engineering',
         systemPrompt: 'Engineering lead',
@@ -248,7 +248,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: CampfireView(
+            body: ScopedRoomsView(
               channels: [chanLobby, chanEng],
               selectedChannel: chanLobby,
               onSelectChannel: (c) => selectedChannel = c,
@@ -270,15 +270,15 @@ void main() {
 
       // Verify onSelectChannel was called with engineering channel
       expect(selectedChannel, isNotNull);
-      expect(selectedChannel?.id, equals('chan-2006-campfire-eng'));
+      expect(selectedChannel?.id, equals('chan-2006-jabber-eng'));
     });
   });
 
-  group('SlackThreadsView Widget Tests', () {
+  group('ThreadsView Widget Tests', () {
     testWidgets('Displays root stream and thread drawer side-by-side', (WidgetTester tester) async {
-      final chanSlack = Channel(
+      final chanThreads = Channel(
         id: 'chan-2017-threads',
-        eraId: 'era-2017-slack-threads',
+        eraId: 'era-2017-threads',
         name: 'general-threads',
         topic: 'Sub-task context isolation',
         description: 'Threads demo',
@@ -328,9 +328,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: SlackThreadsView(
-              channels: [chanSlack],
-              selectedChannel: chanSlack,
+            body: ThreadsView(
+              channels: [chanThreads],
+              selectedChannel: chanThreads,
               onSelectChannel: (_) {},
               messages: rootMessages,
               threadMessages: threadMessages,
@@ -393,15 +393,15 @@ void main() {
     });
   });
 
-  group('SlackV1View Widget Tests', () {
+  group('VectorArchiveView Widget Tests', () {
     testWidgets('Tapping a bot in roster inserts mention into composer', (WidgetTester tester) async {
-      final chanSlackV1 = Channel(
-        id: 'chan-2013-slack',
-        eraId: 'era-2013-slack',
+      final chanThreadsV1 = Channel(
+        id: 'chan-2013-hipchat',
+        eraId: 'era-2013-hipchat',
         name: 'general',
-        topic: 'Slack 1.0 RAG Search',
-        description: 'Slack 1.0',
-        systemPrompt: 'Slack bot',
+        topic: 'Vector Archive RAG Search',
+        description: 'Vector Archive',
+        systemPrompt: 'Archive bot',
         retentionHours: 168,
       );
 
@@ -413,9 +413,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: SlackV1View(
-              channels: [chanSlackV1],
-              selectedChannel: chanSlackV1,
+            body: VectorArchiveView(
+              channels: [chanThreadsV1],
+              selectedChannel: chanThreadsV1,
               onSelectChannel: (_) {},
               messages: const [],
               onSendMessage: (_) {},

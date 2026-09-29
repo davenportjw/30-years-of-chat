@@ -219,7 +219,7 @@ func TestSeedDataIntegrity(t *testing.T) {
 		t.Fatalf("seed failed: %v", err)
 	}
 
-	// Verify 10 channels across the 6 eras (including AIM buddies and Campfire multi-rooms)
+	// Verify 10 channels across the 6 eras (including AIM buddies and Jabber multi-rooms)
 	channels, err := store.ListChannels(ctx)
 	if err != nil {
 		t.Fatalf("failed to list channels: %v", err)
@@ -276,18 +276,18 @@ func TestSeedDataIntegrity(t *testing.T) {
 		t.Fatalf("expected 2 AIM researcher messages, got %d", len(aimResearcherMsgs))
 	}
 
-	// Verify Campfire multi-rooms
-	campLobbyMsgs, err := store.ListMessages(ctx, "chan-2006-campfire-lobby", "", 10)
+	// Verify Jabber multi-rooms
+	campLobbyMsgs, err := store.ListMessages(ctx, "chan-2006-jabber-lobby", "", 10)
 	if err != nil || len(campLobbyMsgs) != 2 {
-		t.Fatalf("expected 2 Campfire lobby messages, got %d", len(campLobbyMsgs))
+		t.Fatalf("expected 2 Jabber lobby messages, got %d", len(campLobbyMsgs))
 	}
-	campEngMsgs, err := store.ListMessages(ctx, "chan-2006-campfire-eng", "", 10)
+	campEngMsgs, err := store.ListMessages(ctx, "chan-2006-jabber-eng", "", 10)
 	if err != nil || len(campEngMsgs) != 2 {
-		t.Fatalf("expected 2 Campfire eng messages, got %d", len(campEngMsgs))
+		t.Fatalf("expected 2 Jabber eng messages, got %d", len(campEngMsgs))
 	}
-	campBilling, err := store.GetChannel(ctx, "chan-2006-campfire")
+	campBilling, err := store.GetChannel(ctx, "chan-2006-jabber-billing")
 	if err != nil || len(campBilling.AllowedRoles) != 3 {
-		t.Fatalf("expected Campfire billing room to have 3 allowed roles, got %v", campBilling)
+		t.Fatalf("expected Jabber billing room to have 3 allowed roles, got %v", campBilling)
 	}
 
 	// Verify AIM 1:1 Channel AllowedRoles strict boundaries
@@ -304,10 +304,10 @@ func TestSeedDataIntegrity(t *testing.T) {
 		t.Fatalf("expected chan-1997-aim-researcher to allow only researcher-agent, got %v", aimResearcher.AllowedRoles)
 	}
 
-	// Verify Campfire engineering role restrictions
-	campEng, err := store.GetChannel(ctx, "chan-2006-campfire-eng")
+	// Verify Jabber engineering role restrictions
+	campEng, err := store.GetChannel(ctx, "chan-2006-jabber-eng")
 	if err != nil || len(campEng.AllowedRoles) != 4 {
-		t.Fatalf("expected Campfire engineering room to have 4 allowed roles, got %v", campEng.AllowedRoles)
+		t.Fatalf("expected Jabber engineering room to have 4 allowed roles, got %v", campEng.AllowedRoles)
 	}
 }
 

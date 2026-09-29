@@ -187,12 +187,12 @@ async def test_rater_agent_evaluates_all_six_eras(client, base_url):
         elif era_id == "era-1997-aim":
             extra_telemetry["presences"] = presences
 
-        elif era_id == "era-2006-campfire":
+        elif era_id == "era-2006-jabber":
             extra_telemetry["room_permissions"] = {
                 c["id"]: c.get("allowed_roles", []) for c in era_channels
             }
 
-        elif era_id == "era-2013-slack":
+        elif era_id == "era-2013-hipchat":
             # Search vector hits and vector tag annotations
             vector_hits = [
                 m for m in messages

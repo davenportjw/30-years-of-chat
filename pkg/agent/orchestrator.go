@@ -214,10 +214,12 @@ func (o *Orchestrator) HandleIncomingUserMessage(ctx context.Context, channelID 
 		targetRole = LeadCoordinator
 	} else if channelID == "chan-incident-postmortem" && (strings.Contains(lowerContent, "adr") || strings.Contains(lowerContent, "database") || strings.Contains(lowerContent, "vector") || strings.Contains(lowerContent, "postmortem") || strings.Contains(lowerContent, "latency") || strings.Contains(lowerContent, "lock")) {
 		targetRole = DevResearcher
-	} else if channelID == "chan-2006-campfire-eng" && (strings.Contains(lowerContent, "research") || strings.Contains(lowerContent, "vector") || strings.Contains(lowerContent, "benchmark")) {
+	} else if channelID == "chan-2006-jabber-eng" && (strings.Contains(lowerContent, "research") || strings.Contains(lowerContent, "vector") || strings.Contains(lowerContent, "benchmark")) {
 		targetRole = DevResearcher
 	} else if channelID == "chan-product-launch" || (ch != nil && (ch.EraID == "era-2026-agent-mesh" || strings.Contains(ch.EraID, "2026"))) || strings.Contains(channelID, "product-launch") {
-		if strings.Contains(lowerContent, "security") || strings.Contains(lowerContent, "credentials") || strings.Contains(lowerContent, "scratchpad") || strings.Contains(lowerContent, "isolation") {
+		if strings.Contains(lowerContent, "security constraint") {
+			targetRole = LeadCoordinator
+		} else if strings.Contains(lowerContent, "security") || strings.Contains(lowerContent, "credentials") || strings.Contains(lowerContent, "scratchpad") || strings.Contains(lowerContent, "isolation") {
 			targetRole = StaffArchitectScribe
 		} else if strings.Contains(lowerContent, "consensus") {
 			if strings.Contains(lowerContent, "summary") || strings.Contains(lowerContent, "checkpoint") || strings.Contains(lowerContent, "record") || strings.Contains(lowerContent, "audit") {
@@ -528,10 +530,10 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 	}
 
 	// 2. Long-Term Memory (Vector Search RAG)
-	// Vector RAG must ONLY run if the era has vector search capabilities (era-2013-slack, era-2017-threads, era-2026-agent-mesh, or scoped era-2006-campfire).
+	// Vector RAG must ONLY run if the era has vector search capabilities (era-2013-hipchat, era-2017-threads, era-2026-agent-mesh, or scoped era-2006-jabber).
 	// Strictly exclude era-1988-irc and era-1997-aim.
 	var vectorHits []storage.VectorSearchResult
-	isVectorCapableEra := (ch.EraID == "era-2013-slack" || ch.EraID == "era-2017-threads" || ch.EraID == "era-2026-agent-mesh" || ch.EraID == "era-2006-campfire")
+	isVectorCapableEra := (ch.EraID == "era-2013-hipchat" || ch.EraID == "era-2017-threads" || ch.EraID == "era-2026-agent-mesh" || ch.EraID == "era-2006-jabber")
 	if strings.Contains(ch.EraID, "1988") || strings.Contains(ch.EraID, "1997") {
 		isVectorCapableEra = false
 	}
@@ -540,9 +542,9 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 		vecStart := time.Now()
 		vQuery := []float32{0.82, 0.74, 0.21, 0.12, 0.91, 0.15, 0.05, 0.88, 0.79, 0.18, 0.11, 0.85, 0.14, 0.06, 0.83, 0.77}
 		
-		// When vector search runs in a scoped era (like Campfire), scope it strictly to channelID to prevent cross-channel memory leakage.
+		// When vector search runs in a scoped era (like Jabber), scope it strictly to channelID to prevent cross-channel memory leakage.
 		searchScope := ""
-		if ch.EraID == "era-2006-campfire" {
+		if ch.EraID == "era-2006-jabber" {
 			searchScope = channelID
 		}
 		
@@ -559,7 +561,7 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 		}
 
 		vecStep := 3 // ActiveStep 3 for 2013
-		if ch.EraID == "era-2006-campfire" {
+		if ch.EraID == "era-2006-jabber" {
 			vecStep = 2
 		}
 
@@ -898,7 +900,50 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 		}
 	}
 
+	// In the 2026 Collaborative Multi-Agent Mesh, Lead Coordinator coordinates the swarm
+	// and actually calls the other agents (@researcher, @scribe) so the whole swarm actively collaborates.
+	is2026Swarm := ch.EraID == "era-2026-agent-mesh" || strings.Contains(ch.EraID, "2026") || channelID == "chan-product-launch" || strings.Contains(channelID, "product-launch")
+	if is2026Swarm && role.ID == LeadCoordinator.ID && !strings.HasPrefix(triggerPrompt, "@lead called you") {
+		o.delegate2026SwarmTurns(channelID, threadID, agentMsg.Content, triggerPrompt)
+	}
+
 	return &agentMsg, nil
+}
+
+// delegate2026SwarmTurns dispatches turns to the specialist agents in the 2026 swarm
+// when called by the Lead Coordinator.
+func (o *Orchestrator) delegate2026SwarmTurns(channelID string, threadID string, leadContent string, userPrompt string) {
+	lowerResp := strings.ToLower(leadContent)
+
+	callResearcher := strings.Contains(lowerResp, "@researcher") || strings.Contains(lowerResp, "researcher")
+	callScribe := strings.Contains(lowerResp, "@scribe") || strings.Contains(lowerResp, "scribe")
+
+	// In the 2026 swarm examples, Lead Coordinator coordinates the whole swarm.
+	// If neither was explicitly singled out, call both so the entire mesh responds.
+	if !callResearcher && !callScribe {
+		callResearcher = true
+		callScribe = true
+	}
+
+	go func() {
+		// Natural conversational delay so the Lead response renders first on the UI
+		time.Sleep(800 * time.Millisecond)
+
+		if callResearcher {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			prompt := fmt.Sprintf("@lead called you in the 2026 swarm.\nCoordinator Directive: %s\nOriginal Request: %s\nProvide your terse 2-line assessment as Dev Researcher.", leadContent, userPrompt)
+			_, _ = o.TriggerAgentResponse(bgCtx, channelID, threadID, DevResearcher, prompt)
+			cancel()
+			time.Sleep(800 * time.Millisecond)
+		}
+
+		if callScribe {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			prompt := fmt.Sprintf("@lead called you in the 2026 swarm.\nCoordinator Directive: %s\nOriginal Request: %s\nProvide your terse 2-line checkpoint as Staff Architect Scribe.", leadContent, userPrompt)
+			_, _ = o.TriggerAgentResponse(bgCtx, channelID, threadID, StaffArchitectScribe, prompt)
+			cancel()
+		}
+	}()
 }
 
 // ConsolidateMemory triggers an offline Dreaming / Consolidation cycle for a channel.
@@ -929,7 +974,7 @@ Your mission is to analyze episodic conversation logs, prune transient noise and
 
 You MUST respond ONLY with a valid JSON object matching this schema:
 {
-  "summary": "Concise paragraph synthesizing the core architectural state, technical consensus, and conclusions",
+  "summary": "Concise 2-3 sentence summary synthesizing the core architectural state, technical consensus, and conclusions for demo readability",
   "intent_trajectory": "Chronological trajectory and intent evolution across turns (e.g. Inception -> Design -> Hardening -> GA Sign-off)",
   "distilled_facts": [
     "Durable architectural fact 1",

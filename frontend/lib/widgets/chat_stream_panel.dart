@@ -79,10 +79,10 @@ class _ChatStreamPanelState extends State<ChatStreamPanel> {
         'Can you review PR-402 for me?',
         'Are you available for architecture triage?',
       ];
-    } else if (widget.channel.id.startsWith('chan-2006-campfire')) {
+    } else if (widget.channel.id.startsWith('chan-2006-jabber')) {
       return [
         'Check apollo billing balance (Test Fencing)',
-        'Deploy Campfire v1.4 patch to staging',
+        'Deploy Jabber v1.4 patch to staging',
         'List allowed agent roles in this room',
       ];
     } else if (widget.channel.id == 'chan-incident-postmortem') {

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import '../../models/chat_models.dart';
 import '../theme/sepia_theme.dart';
 
-/// SlackThreadsView implements the Modern Slack layout with an expandable
+/// ThreadsView implements the Modern Threaded Chat layout with an expandable
 /// right-hand Thread Scratchpad (sub-task context isolation).
 ///
 /// Memory Concept:
 /// - Sub-Task Scratchpad Isolation & Scribe Compaction
 /// - High-turn debates live inside isolated thread scratchpads
 /// - "@scribe summarize thread" demonstrates hierarchical state compaction (-96% token reduction).
-class SlackThreadsView extends StatefulWidget {
+class ThreadsView extends StatefulWidget {
   final List<Channel> channels;
   final Channel selectedChannel;
   final Function(Channel) onSelectChannel;
@@ -22,7 +22,7 @@ class SlackThreadsView extends StatefulWidget {
   final String? typingAgentName;
   final Function(Message)? onSelectMessage;
 
-  const SlackThreadsView({
+  const ThreadsView({
     super.key,
     required this.channels,
     required this.selectedChannel,
@@ -38,10 +38,10 @@ class SlackThreadsView extends StatefulWidget {
   });
 
   @override
-  State<SlackThreadsView> createState() => _SlackThreadsViewState();
+  State<ThreadsView> createState() => _ThreadsViewState();
 }
 
-class _SlackThreadsViewState extends State<SlackThreadsView> {
+class _ThreadsViewState extends State<ThreadsView> {
   final TextEditingController _mainComposerCtrl = TextEditingController();
   final TextEditingController _threadComposerCtrl = TextEditingController();
   final ScrollController _mainScrollCtrl = ScrollController();
@@ -94,7 +94,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
   }
 
   @override
-  void didUpdateWidget(covariant SlackThreadsView oldWidget) {
+  void didUpdateWidget(covariant ThreadsView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.messages.length != oldWidget.messages.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -162,10 +162,10 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
 
   @override
   Widget build(BuildContext context) {
-    const slackDarkNav = Color(0xFF1A1D21);
-    const slackActiveNav = Color(0xFF2C3136);
-    const slackBorder = Color(0xFFE2E2E2);
-    const slackAccent = Color(0xFF1264A3);
+    const threadDarkNav = Color(0xFF1A1D21);
+    const threadActiveNav = Color(0xFF2C3136);
+    const threadBorder = Color(0xFFE2E2E2);
+    const threadAccent = Color(0xFF1264A3);
 
     // Filter messages: main stream shows root messages (never empty even when thread is open)
     final rootMessages = widget.messages.where((m) => m.threadId == null || m.threadId!.isEmpty).toList();
@@ -206,7 +206,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
               // 1. Left Sidebar: Channels & Thread Hub (240px)
               Container(
                 width: 240,
-                color: slackDarkNav,
+                color: threadDarkNav,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -281,7 +281,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
                           onTap: () => widget.onSelectChannel(ch),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                            color: isSelected ? slackActiveNav : Colors.transparent,
+                            color: isSelected ? threadActiveNav : Colors.transparent,
                             child: Row(
                               children: [
                                 Text(
@@ -338,7 +338,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                           color: widget.activeThreadId == 'thread-rfc-042'
-                              ? slackActiveNav
+                              ? threadActiveNav
                               : Colors.transparent,
                           child: const Row(
                             children: [
@@ -374,7 +374,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(color: slackBorder, width: 1)),
+                    border: Border(bottom: BorderSide(color: threadBorder, width: 1)),
                   ),
                   child: Row(
                     children: [
@@ -416,11 +416,11 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
                       const SizedBox(width: 12),
                       if (widget.activeThreadId == null)
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.fork_right, size: 14, color: slackAccent),
-                          label: const Text('Open Scratchpad', style: TextStyle(fontSize: 11.5, color: slackAccent)),
+                          icon: const Icon(Icons.fork_right, size: 14, color: threadAccent),
+                          label: const Text('Open Scratchpad', style: TextStyle(fontSize: 11.5, color: threadAccent)),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            side: const BorderSide(color: slackAccent),
+                            side: const BorderSide(color: threadAccent),
                           ),
                           onPressed: () => widget.onOpenThread('thread-rfc-042'),
                         ),
@@ -541,7 +541,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
                   padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(top: BorderSide(color: slackBorder, width: 1)),
+                    border: Border(top: BorderSide(color: threadBorder, width: 1)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,7 +631,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
           // 3. Right-Hand Expandable Drawer: Thread Scratchpad (Resizable from left to right)
           if (widget.activeThreadId != null) ...[
             if (!_isMaximized) ...[
-              _buildResizeHandle(maxScratchpadWidth, slackBorder),
+              _buildResizeHandle(maxScratchpadWidth, threadBorder),
               SizedBox(
                 width: effectiveWidth,
                 child: _buildThreadScratchpadContent(
@@ -639,7 +639,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
                   maxScratchpadWidth: maxScratchpadWidth,
                   threadRoot: threadRoot,
                   threadMessages: threadMessages,
-                  slackBorder: slackBorder,
+                  threadBorder: threadBorder,
                 ),
               ),
             ] else ...[
@@ -649,7 +649,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
                   maxScratchpadWidth: maxScratchpadWidth,
                   threadRoot: threadRoot,
                   threadMessages: threadMessages,
-                  slackBorder: slackBorder,
+                  threadBorder: threadBorder,
                 ),
               ),
             ],
@@ -661,7 +661,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
   );
 }
 
-  Widget _buildResizeHandle(double maxScratchpadWidth, Color slackBorder) {
+  Widget _buildResizeHandle(double maxScratchpadWidth, Color threadBorder) {
     return MouseRegion(
       cursor: SystemMouseCursors.resizeColumn,
       onEnter: (_) => setState(() => _isHoveringHandle = true),
@@ -684,7 +684,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
               children: [
                 Container(
                   width: 1.5,
-                  color: _isDragging || _isHoveringHandle ? SepiaTheme.primary : slackBorder,
+                  color: _isDragging || _isHoveringHandle ? SepiaTheme.primary : threadBorder,
                 ),
                 Container(
                   width: 4,
@@ -707,12 +707,12 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
     required double maxScratchpadWidth,
     required Message threadRoot,
     required List<Message> threadMessages,
-    required Color slackBorder,
+    required Color threadBorder,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFFAF9F6),
-        border: Border(left: BorderSide(color: slackBorder, width: 1.5)),
+        border: Border(left: BorderSide(color: threadBorder, width: 1.5)),
       ),
       child: Column(
         children: [
@@ -721,7 +721,7 @@ class _SlackThreadsViewState extends State<SlackThreadsView> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(bottom: BorderSide(color: slackBorder, width: 1)),
+              border: Border(bottom: BorderSide(color: threadBorder, width: 1)),
             ),
             child: Row(
               children: [
