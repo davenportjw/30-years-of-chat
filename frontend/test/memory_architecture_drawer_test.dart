@@ -154,16 +154,16 @@ void main() {
       // Verify flow tags
       expect(find.text('→ Sliding Token Window'), findsOneWidget);
       expect(find.text('→ RAM Ring Buffer'), findsOneWidget);
-      expect(find.text('→ Drop Oldest Turn'), findsOneWidget);
+      expect(find.text('→ Slide Window Boundary'), findsOneWidget);
       expect(find.text('→ Active Buffer Window'), findsOneWidget);
 
       // Verify step deep-dive inspector is visible
       expect(find.textContaining('INSPECTOR: STEP 1'), findsOneWidget);
-      expect(find.textContaining('FAILURE MODE:'), findsOneWidget);
+      expect(find.textContaining('MEMORY MECHANISM:'), findsOneWidget);
       expect(find.textContaining('STEP IMPLEMENTATION CODE:'), findsOneWidget);
     });
 
-    testWidgets('Tapping step 3 card updates deep-dive inspector to Step 3 Amnesia Trap',
+    testWidgets('Tapping step 3 card updates deep-dive inspector to Step 3 FIFO Context Eviction',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 1000);
       tester.view.devicePixelRatio = 1.0;
@@ -180,7 +180,7 @@ void main() {
 
       // Deep dive inspector now inspects STEP 3
       expect(find.textContaining('INSPECTOR: STEP 3'), findsOneWidget);
-      expect(find.textContaining('Amnesia Trap'), findsWidgets);
+      expect(find.textContaining('FIFO Context Eviction'), findsWidgets);
     });
 
     testWidgets('Active step displays animated LIVE chip', (WidgetTester tester) async {

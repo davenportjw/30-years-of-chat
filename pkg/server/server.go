@@ -48,7 +48,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/api/channels/", s.handleChannelSubroutes)
 	mux.HandleFunc("/api/seed", s.handleSeed)
 	mux.HandleFunc("/api/pacing", s.handlePacing)
-	mux.HandleFunc("/api/spanner/ddl", s.handleSpannerDDL)
+	mux.HandleFunc("/api/vector/ddl", s.handleVectorDDL)
+	mux.HandleFunc("/api/spanner/ddl", s.handleVectorDDL)
 	mux.HandleFunc("/api/database", s.handleDatabase)
 
 	// WebSocket endpoint
@@ -353,7 +354,7 @@ func (s *Server) handlePacing(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 }
 
-func (s *Server) handleSpannerDDL(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleVectorDDL(w http.ResponseWriter, r *http.Request) {
 	resp := map[string]string{
 		"ddl": storage.SpannerDDL,
 	}
@@ -408,7 +409,7 @@ pre { background: #f4efe4; padding: 12px; border-radius: 6px; font-size: 13px; o
 <p>Google Cloud Run Service: <code>davenport-boutique</code> (us-central1)</p>
 <p>
 <span class="pill">Gemini 3.8 Flash</span>
-<span class="pill">Cloud Spanner Vector Search</span>
+<span class="pill">BigQuery Vector Search</span>
 <span class="pill">WebSockets RFC 6455</span>
 <span class="pill">Strict Zero Mocks</span>
 </p>
@@ -417,7 +418,7 @@ pre { background: #f4efe4; padding: 12px; border-radius: 6px; font-size: 13px; o
 <li><a href="/healthz">/healthz</a> — Service Health & Telemetry</li>
 <li><a href="/api/channels">/api/channels</a> — Channels List</li>
 <li><a href="/api/channels/chan-incident-postmortem/messages">/api/channels/chan-incident-postmortem/messages</a> — Event History Stream</li>
-<li><a href="/api/spanner/ddl">/api/spanner/ddl</a> — Spanner Vector Index Schema</li>
+<li><a href="/api/vector/ddl">/api/vector/ddl</a> — Vector Index Schema</li>
 </ul>
 </div>
 </body>

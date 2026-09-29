@@ -14,14 +14,14 @@ import '../theme/sepia_theme.dart';
 ///    - 2026: Collaborative Multi-Agent Mesh • Dual-Layer Memory & Dreaming
 /// 2. Quick Stepper buttons: `< Prev Era` and `Next Era >` for talk presentations.
 /// 3. Controls on the right:
-///    - Autonomous Pacing toggle (Play/Pause) & slider indicator.
 ///    - Reset & Re-seed button.
+///    - Memory Architecture & Live Trace button.
 class TopEraBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Era> eras;
   final Era? selectedEra;
   final Function(Era) onSelectEra;
-  final PacingMode pacing;
-  final Function(PacingMode) onUpdatePacing;
+  final PacingMode? pacing;
+  final Function(PacingMode)? onUpdatePacing;
   final VoidCallback onReseed;
   final bool isReseeding;
   final bool isArchitectureDrawerOpen;
@@ -34,8 +34,8 @@ class TopEraBar extends StatelessWidget implements PreferredSizeWidget {
     required this.eras,
     required this.selectedEra,
     required this.onSelectEra,
-    required this.pacing,
-    required this.onUpdatePacing,
+    this.pacing,
+    this.onUpdatePacing,
     required this.onReseed,
     this.isReseeding = false,
     this.isArchitectureDrawerOpen = false,
@@ -140,15 +140,7 @@ class TopEraBar extends StatelessWidget implements PreferredSizeWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // 3. Autonomous Pacing Control (Play/Pause & Slider)
-                      _AutonomousPacingControl(
-                        pacing: pacing,
-                        onUpdatePacing: onUpdatePacing,
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      // 4. Reset & Re-seed button
+                      // Reset & Re-seed button
                       _ReseedButton(
                         isReseeding: isReseeding,
                         onReseed: onReseed,
@@ -468,111 +460,6 @@ class _EraStepperControls extends StatelessWidget {
   }
 }
 
-/// Autonomous Pacing Control (Play/Pause & Speed Slider)
-class _AutonomousPacingControl extends StatelessWidget {
-  final PacingMode pacing;
-  final Function(PacingMode) onUpdatePacing;
-
-  const _AutonomousPacingControl({
-    required this.pacing,
-    required this.onUpdatePacing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: SepiaTheme.background,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: SepiaTheme.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Play / Pause Toggle
-          IconButton(
-            icon: Icon(
-              pacing.paused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-              size: 20,
-              color: pacing.paused ? SepiaTheme.textMuted : SepiaTheme.primary,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            tooltip: pacing.paused ? 'Resume autonomous loop' : 'Pause autonomous loop',
-            onPressed: () {
-              onUpdatePacing(PacingMode(
-                paused: !pacing.paused,
-                intervalSeconds: pacing.intervalSeconds,
-              ));
-            },
-          ),
-          const SizedBox(width: 6),
-          // Status indicator dot and text
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: pacing.paused ? Colors.grey : Colors.green,
-                ),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                pacing.paused ? 'Paused' : 'Auto-Pacing',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: pacing.paused ? SepiaTheme.textMuted : SepiaTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 6),
-          // Slider
-          SizedBox(
-            width: 95,
-            height: 28,
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 3,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                activeTrackColor: SepiaTheme.primary,
-                inactiveTrackColor: SepiaTheme.border,
-                thumbColor: SepiaTheme.primary,
-              ),
-              child: Slider(
-                value: pacing.intervalSeconds.toDouble().clamp(3.0, 20.0),
-                min: 3.0,
-                max: 20.0,
-                divisions: 17,
-                label: '${pacing.intervalSeconds}s',
-                onChanged: (val) {
-                  onUpdatePacing(PacingMode(
-                    paused: pacing.paused,
-                    intervalSeconds: val.toInt(),
-                  ));
-                },
-              ),
-            ),
-          ),
-          Text(
-            '${pacing.intervalSeconds}s',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: SepiaTheme.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// Reset & Re-seed Button
 class _ReseedButton extends StatelessWidget {

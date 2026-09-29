@@ -11,8 +11,8 @@ class LeftNavPanel extends StatelessWidget {
   final Function(Channel) onSelectChannel;
   final List<AgentPresence> presences;
   final Function(AgentPresence)? onUpdatePresence;
-  final PacingMode pacing;
-  final Function(PacingMode) onUpdatePacing;
+  final PacingMode? pacing;
+  final Function(PacingMode)? onUpdatePacing;
   final VoidCallback onReseed;
   final bool isReseeding;
 
@@ -26,8 +26,8 @@ class LeftNavPanel extends StatelessWidget {
     required this.onSelectChannel,
     this.presences = const [],
     this.onUpdatePresence,
-    required this.pacing,
-    required this.onUpdatePacing,
+    this.pacing,
+    this.onUpdatePacing,
     required this.onReseed,
     this.isReseeding = false,
   });
@@ -327,88 +327,31 @@ class LeftNavPanel extends StatelessWidget {
 
           const Divider(height: 1, color: SepiaTheme.border),
 
-          // Autonomous Pacing & Re-seed Controls
+          // Re-seed Controls
           Container(
             padding: const EdgeInsets.all(14),
             color: SepiaTheme.background,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Autonomous Pacing',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: SepiaTheme.textPrimary),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        pacing.paused ? Icons.play_arrow : Icons.pause,
-                        size: 18,
-                        color: SepiaTheme.primary,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      tooltip: pacing.paused ? 'Resume autonomous loop' : 'Pause autonomous loop',
-                      onPressed: () {
-                        onUpdatePacing(PacingMode(
-                          paused: !pacing.paused,
-                          intervalSeconds: pacing.intervalSeconds,
-                        ));
-                      },
-                    ),
-                  ],
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: isReseeding
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: SepiaTheme.primary),
+                      )
+                    : const Icon(Icons.refresh, size: 14, color: SepiaTheme.primary),
+                label: const Text(
+                  'Reset & Re-seed 6-Era Scenarios',
+                  style: TextStyle(fontSize: 11.5, color: SepiaTheme.primary),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Slider(
-                        value: pacing.intervalSeconds.toDouble().clamp(3.0, 20.0),
-                        min: 3.0,
-                        max: 20.0,
-                        divisions: 17,
-                        activeColor: SepiaTheme.primary,
-                        inactiveColor: SepiaTheme.border,
-                        label: '${pacing.intervalSeconds}s',
-                        onChanged: (val) {
-                          onUpdatePacing(PacingMode(
-                            paused: pacing.paused,
-                            intervalSeconds: val.toInt(),
-                          ));
-                        },
-                      ),
-                    ),
-                    Text(
-                      '${pacing.intervalSeconds}s',
-                      style: const TextStyle(fontSize: 11, color: SepiaTheme.textSecondary),
-                    ),
-                  ],
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: SepiaTheme.borderStrong),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    icon: isReseeding
-                        ? const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: SepiaTheme.primary),
-                          )
-                        : const Icon(Icons.refresh, size: 14, color: SepiaTheme.primary),
-                    label: const Text(
-                      'Reset & Re-seed 6-Era Scenarios',
-                      style: TextStyle(fontSize: 11.5, color: SepiaTheme.primary),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: SepiaTheme.borderStrong),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    ),
-                    onPressed: isReseeding ? null : onReseed,
-                  ),
-                ),
-              ],
+                onPressed: isReseeding ? null : onReseed,
+              ),
             ),
           ),
         ],

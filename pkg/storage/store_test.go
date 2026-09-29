@@ -679,3 +679,53 @@ func TestSearchCrystallizedBeliefs_Deduplication(t *testing.T) {
 	}
 }
 
+func TestCrystallizedBelief_GeneratedAt(t *testing.T) {
+	ctx := context.Background()
+	store := NewInMemStore()
+
+	// 1. Verify JSON Unmarshal with generated_at timestamp
+	jsonWithTime := `{
+		"key": "cloud_run_metrics",
+		"value": "Sub-50ms p95 latency on Cloud Run",
+		"category": "Performance",
+		"confidence": 0.99,
+		"keywords": "cloud run, metrics, latency",
+		"statement": "Production metrics show sub-50ms p95 latency.",
+		"generated_at": "2026-09-29T08:00:00Z"
+	}`
+	var belief CrystallizedBelief
+	if err := json.Unmarshal([]byte(jsonWithTime), &belief); err != nil {
+		t.Fatalf("failed to unmarshal belief with generated_at: %v", err)
+	}
+	expectedTime, _ := time.Parse(time.RFC3339, "2026-09-29T08:00:00Z")
+	if !belief.GeneratedAt.Equal(expectedTime) {
+		t.Fatalf("expected GeneratedAt %v, got %v", expectedTime, belief.GeneratedAt)
+	}
+
+	// 2. Verify Seeded ConsolidationReport has populated GeneratedAt for each CrystallizedBelief
+	if err := store.ResetAndSeed(ctx); err != nil {
+		t.Fatalf("failed to seed store: %v", err)
+	}
+
+	reports, err := store.ListConsolidationReports(ctx, "chan-product-launch")
+	if err != nil || len(reports) == 0 {
+		t.Fatalf("expected seeded consolidation reports, got %v (err: %v)", reports, err)
+	}
+
+	seededReport := reports[0]
+	if len(seededReport.CrystallizedBeliefs) == 0 {
+		t.Fatalf("expected crystallized beliefs in seeded report")
+	}
+
+	for _, b := range seededReport.CrystallizedBeliefs {
+		if b.GeneratedAt.IsZero() {
+			t.Errorf("expected seeded belief %s to have non-zero GeneratedAt, got zero", b.Key)
+		}
+		// Seeded time should be around 10 minutes ago
+		diff := time.Since(b.GeneratedAt)
+		if diff < 5*time.Minute || diff > 15*time.Minute {
+			t.Errorf("expected seeded belief %s GeneratedAt ~10m ago, got diff %v", b.Key, diff)
+		}
+	}
+}
+

@@ -34,7 +34,7 @@ func DefaultGeminiConfig() GeminiConfig {
 
 	location := os.Getenv("GCP_LOCATION")
 	if location == "" {
-		location = "global"
+		location = "us-central1"
 	}
 
 	model := os.Getenv("GEMINI_MODEL")

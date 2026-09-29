@@ -29,7 +29,7 @@ When an era is selected, the Flutter Web interface **literally transforms** into
 - **1997 AIM (`AimMessengerView`)**: Windows 95/98 beveled window chrome with navy title bar, Buddy List with active agents, away message persona priming modal, and sunken 1:1 direct chat log with formatting bar.
 - **2006 Campfire (`CampfireView`)**: 37signals Web 2.0 cream aesthetic, project-scoped room tabs, sound toggle, yellow fade highlight, and real-time `CONTEXT QUARANTINE WARNING` cards for cross-room isolation.
 - **2013 Slack 1.0 (`SlackV1View`)**: Aubergine sidebar (`#4A154B`), clean white transcript, and top universal Vector RAG search bar computing live cosine similarity distances.
-- **2017 Slack Threads (`SlackThreadsView`)**: Modern Slack workspace with collapsible 430px right-hand Thread Scratchpad and prominent `@scribe summarize thread` compaction button (-96% token rollup).
+- **2017 Slack Threads (`SlackThreadsView`)**: Modern Slack workspace with an interactive resizable right-hand Thread Scratchpad (resizable from left to right via a draggable splitter handle, quick preset buttons `Std: 430px`, `Wide: 650px`, full-width `Maximize`/`Restore`, and collapsible root prompt toggle), active thread highlighting in the main channel stream, and prominent `@scribe summarize thread` compaction button (-96% token rollup).
 - **2026 Collaborative Agent Mesh (`AgentMeshView`)**: Academic sepia 3-panel studio (Swarm Roster with live presence, Blackboard stream with compact Intent Pills and Progressive Quick Action Scenario Chips, and 5-tab Memory Lens Drawer for private scratchpads, live Dreaming consolidation, and crystalline belief inspection). Features an automated 5-step interactive tour.
 
 ---

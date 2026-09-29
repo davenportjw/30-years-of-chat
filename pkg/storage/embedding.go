@@ -50,7 +50,7 @@ func GenerateEmbedding(text string) []float64 {
 		// Cloud & Infrastructure
 		"tool":             {150, 151},
 		"tools":            {150, 151},
-		"spanner":          {150, 152},
+		"database":         {150, 152},
 		"bigquery":         {150, 153},
 		"terraform":        {150, 154},
 		"gcp":              {150, 155},
@@ -77,7 +77,6 @@ func GenerateEmbedding(text string) []float64 {
 		"crystalline":       {220, 225},
 		"belief":            {220, 225},
 		"db_vector_search":  {220, 221, 153},
-		"db_vector_spanner": {220, 221, 152},
 
 		// Intent & Trajectory
 		"intent":           {250, 251},

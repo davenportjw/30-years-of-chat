@@ -56,7 +56,7 @@ void main() {
         'pruned_messages': 7,
         'distilled_facts': [
           'ADC auth is mandatory for Vertex AI Gemini 3.8 calls in davenport-boutique',
-          'Spanner vector indexing uses COSINE distance with TREE_AH',
+          'BigQuery vector indexing uses COSINE distance with ML.DISTANCE',
         ],
         'insight_summary': 'Consolidation cycle completed successfully.',
         'completed_at': '2026-09-28T22:20:00.000Z',
@@ -107,6 +107,104 @@ void main() {
       final report = ConsolidationReport.fromJson(Map<String, dynamic>.from(rawMap));
       expect(report.distilledFacts, equals(['Fact 1', 'Fact 2']));
       expect(report.crystallizedBeliefs.first.keywords, equals(['tag1', 'tag2']));
+    });
+
+    test('parses generated_at in CrystallizedBelief.fromJson and serializes in toJson', () {
+      final json = {
+        'key': 'cloud_run_spec',
+        'value': 'Production on Cloud Run with Gemini 3.8',
+        'category': 'Infrastructure',
+        'confidence': 0.98,
+        'keywords': 'Cloud Run, Terraform',
+        'statement': 'Production stack runs on Cloud Run.',
+        'generated_at': '2026-09-29T08:30:00.000Z',
+      };
+
+      final belief = CrystallizedBelief.fromJson(json);
+      expect(belief.generatedAt, isNotNull);
+      expect(belief.generatedAt!.toIso8601String(), equals('2026-09-29T08:30:00.000Z'));
+
+      final serialized = belief.toJson();
+      expect(serialized['generated_at'], equals('2026-09-29T08:30:00.000Z'));
+    });
+
+    test('parses generation_time as fallback in CrystallizedBelief.fromJson', () {
+      final json = {
+        'key': 'sec_adc',
+        'value': 'ADC Auth',
+        'category': 'Security',
+        'confidence': 0.99,
+        'keywords': 'ADC',
+        'statement': 'ADC is mandatory.',
+        'generation_time': '2026-09-29T08:45:00.000Z',
+      };
+
+      final belief = CrystallizedBelief.fromJson(json);
+      expect(belief.generatedAt, isNotNull);
+      expect(belief.generatedAt!.toIso8601String(), equals('2026-09-29T08:45:00.000Z'));
+    });
+
+    test('falls back to null generatedAt when time fields are absent', () {
+      final json = {
+        'key': 'sec_adc',
+        'value': 'ADC Auth',
+      };
+
+      final belief = CrystallizedBelief.fromJson(json);
+      expect(belief.generatedAt, isNull);
+      expect(belief.toJson()['generated_at'], isNull);
+    });
+
+    test('ConsolidationReport.fromJson assigns report.completedAt when belief generatedAt is null', () {
+      final reportJson = {
+        'id': 'dream-fallback-time',
+        'channel_id': 'chan-mesh',
+        'pruned_messages': 5,
+        'distilled_facts': ['Durable fact 1'],
+        'insight_summary': 'Summary',
+        'completed_at': '2026-09-29T09:15:00.000Z',
+        'crystallized_beliefs': [
+          {
+            'key': 'belief_without_timestamp',
+            'value': 'Distilled invariant',
+            'category': 'Security',
+            'confidence': 0.97,
+            'statement': 'Durable security invariant.',
+          },
+        ],
+      };
+
+      final report = ConsolidationReport.fromJson(reportJson);
+      expect(report.crystallizedBeliefs.length, equals(1));
+      expect(report.crystallizedBeliefs.first.generatedAt, isNotNull);
+      expect(report.crystallizedBeliefs.first.generatedAt, equals(report.completedAt));
+      expect(report.crystallizedBeliefs.first.generatedAt!.toIso8601String(), equals('2026-09-29T09:15:00.000Z'));
+    });
+
+    test('ConsolidationReport.fromJson preserves belief generatedAt when explicitly provided', () {
+      final reportJson = {
+        'id': 'dream-explicit-time',
+        'channel_id': 'chan-mesh',
+        'pruned_messages': 2,
+        'distilled_facts': ['Durable fact 2'],
+        'insight_summary': 'Summary',
+        'completed_at': '2026-09-29T10:00:00.000Z',
+        'crystallized_beliefs': [
+          {
+            'key': 'belief_with_timestamp',
+            'value': 'Distilled invariant',
+            'category': 'Database',
+            'confidence': 0.99,
+            'statement': 'BigQuery cosine distance indexing.',
+            'generated_at': '2026-09-29T09:50:00.000Z',
+          },
+        ],
+      };
+
+      final report = ConsolidationReport.fromJson(reportJson);
+      expect(report.crystallizedBeliefs.length, equals(1));
+      expect(report.crystallizedBeliefs.first.generatedAt, isNotNull);
+      expect(report.crystallizedBeliefs.first.generatedAt!.toIso8601String(), equals('2026-09-29T09:50:00.000Z'));
     });
   });
 
@@ -247,17 +345,17 @@ void main() {
       );
       final b2 = CrystallizedBelief(
         key: '  CLOUD_RUN_STACK  ',
-        value: 'Cloud Run V2 with Spanner',
+        value: 'Cloud Run V2 with BigQuery',
         category: 'Infrastructure',
         confidence: 0.98,
-        keywords: ['Cloud Run', 'Spanner'],
+        keywords: ['Cloud Run', 'BigQuery'],
         statement: 'Runs on Cloud Run V2.',
       );
 
       final deduplicated = AgentMeshView.deduplicateBeliefs([b1, b2]);
       expect(deduplicated.length, equals(1));
       expect(deduplicated.first.confidence, equals(0.98));
-      expect(deduplicated.first.value, equals('Cloud Run V2 with Spanner'));
+      expect(deduplicated.first.value, equals('Cloud Run V2 with BigQuery'));
     });
 
     test('prefers higher confidence belief when key already exists', () {
@@ -321,11 +419,11 @@ void main() {
         crystallizedBeliefs: [
           CrystallizedBelief(
             key: 'VECTOR_DISTANCE_METRIC',
-            value: 'COSINE distance with TREE_AH indexing',
+            value: 'COSINE distance with ML.DISTANCE indexing',
             category: 'Database',
             confidence: 0.92, // Lower confidence, but more recent report!
-            keywords: ['Vector', 'Cosine', 'Spanner'],
-            statement: 'Uses cosine distance with TREE_AH indexing.',
+            keywords: ['Vector', 'Cosine', 'BigQuery'],
+            statement: 'Uses cosine distance with ML.DISTANCE indexing.',
           ),
         ],
       );
@@ -333,12 +431,12 @@ void main() {
       // Case A: Passed in chronological order [older, newer]
       final resultA = AgentMeshView.extractCrystallizedBeliefs([olderReport, newerReport]);
       expect(resultA.length, equals(1));
-      expect(resultA.first.value, equals('COSINE distance with TREE_AH indexing'));
+      expect(resultA.first.value, equals('COSINE distance with ML.DISTANCE indexing'));
 
       // Case B: Passed in reverse chronological order [newer, older]
       final resultB = AgentMeshView.extractCrystallizedBeliefs([newerReport, olderReport]);
       expect(resultB.length, equals(1));
-      expect(resultB.first.value, equals('COSINE distance with TREE_AH indexing'));
+      expect(resultB.first.value, equals('COSINE distance with ML.DISTANCE indexing'));
     });
 
     test('extractCrystallizedBeliefs falls back to default beliefs when reports have no beliefs', () {
@@ -357,7 +455,7 @@ void main() {
       expect(beliefs.length, equals(4));
       expect(beliefs.map((b) => b.key).toSet(), containsAll([
         'sec_auth_adc',
-        'db_vector_spanner',
+        'db_vector_search',
         'arch_scribe_compaction',
         'infra_cloud_run',
       ]));
@@ -370,7 +468,7 @@ void main() {
         prunedMessages: 6,
         distilledFacts: [
           'ADC auth is mandatory for Vertex AI Gemini 3.8 calls in davenport-boutique',
-          'Cloud Spanner vector indexing uses COSINE distance with TREE_AH',
+          'BigQuery vector indexing uses COSINE distance with ML.DISTANCE',
         ],
         insightSummary: 'Facts consolidation',
         completedAt: DateTime.now(),

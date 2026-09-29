@@ -200,7 +200,7 @@ async def test_rater_agent_evaluates_all_six_eras(client, base_url):
                 or any(t.get("type") == "vector_hit" or "vector" in t.get("label", "").lower() for t in m.get("intent_tags", []))
             ]
             extra_telemetry["vector_hits_count"] = max(len(vector_hits), 1)
-            extra_telemetry["vector_search_engine"] = "Cloud Spanner Vector Search (COSINE, TREE_AH Index)"
+            extra_telemetry["vector_search_engine"] = "BigQuery Vector Search (ML.DISTANCE COSINE)"
 
         elif era_id == "era-2017-threads":
             summaries_resp = await client.get(f"{base_url}/api/channels/{chan_id}/summaries")

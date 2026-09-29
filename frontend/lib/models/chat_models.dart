@@ -184,6 +184,7 @@ class CrystallizedBelief {
   final double confidence;
   final List<String> keywords;
   final String statement;
+  final DateTime? generatedAt;
 
   CrystallizedBelief({
     required this.key,
@@ -192,7 +193,28 @@ class CrystallizedBelief {
     required this.confidence,
     required this.keywords,
     required this.statement,
+    this.generatedAt,
   });
+
+  CrystallizedBelief copyWith({
+    String? key,
+    String? value,
+    String? category,
+    double? confidence,
+    List<String>? keywords,
+    String? statement,
+    DateTime? generatedAt,
+  }) {
+    return CrystallizedBelief(
+      key: key ?? this.key,
+      value: value ?? this.value,
+      category: category ?? this.category,
+      confidence: confidence ?? this.confidence,
+      keywords: keywords ?? this.keywords,
+      statement: statement ?? this.statement,
+      generatedAt: generatedAt ?? this.generatedAt,
+    );
+  }
 
   factory CrystallizedBelief.fromJson(Map<String, dynamic> json) {
     List<String> kw = [];
@@ -210,6 +232,12 @@ class CrystallizedBelief {
           .toList();
     }
 
+    final rawTime = json['generated_at'] ?? json['generation_time'];
+    DateTime? genAt;
+    if (rawTime != null) {
+      genAt = DateTime.tryParse(rawTime.toString());
+    }
+
     return CrystallizedBelief(
       key: json['key']?.toString() ?? '',
       value: json['value']?.toString() ?? '',
@@ -217,6 +245,7 @@ class CrystallizedBelief {
       confidence: (json['confidence'] as num?)?.toDouble() ?? 1.0,
       keywords: kw,
       statement: json['statement']?.toString() ?? '',
+      generatedAt: genAt,
     );
   }
 
@@ -227,6 +256,7 @@ class CrystallizedBelief {
         'confidence': confidence,
         'keywords': keywords,
         'statement': statement,
+        'generated_at': generatedAt?.toIso8601String(),
       };
 }
 
@@ -266,12 +296,21 @@ class ConsolidationReport {
           .toList();
     }
 
+    final completedAt = json['completed_at'] != null
+        ? DateTime.tryParse(json['completed_at'].toString()) ?? DateTime.now()
+        : DateTime.now();
+
     List<CrystallizedBelief> beliefs = [];
     final rawBeliefs = json['crystallized_beliefs'];
     if (rawBeliefs is List) {
       for (final b in rawBeliefs) {
         if (b is Map) {
-          beliefs.add(CrystallizedBelief.fromJson(Map<String, dynamic>.from(b)));
+          final belief = CrystallizedBelief.fromJson(Map<String, dynamic>.from(b));
+          if (belief.generatedAt == null) {
+            beliefs.add(belief.copyWith(generatedAt: completedAt));
+          } else {
+            beliefs.add(belief);
+          }
         }
       }
     }
@@ -282,9 +321,7 @@ class ConsolidationReport {
       prunedMessages: (json['pruned_messages'] as num?)?.toInt() ?? 0,
       distilledFacts: facts,
       insightSummary: json['insight_summary']?.toString() ?? '',
-      completedAt: json['completed_at'] != null
-          ? DateTime.tryParse(json['completed_at'].toString()) ?? DateTime.now()
-          : DateTime.now(),
+      completedAt: completedAt,
       crystallizedBeliefs: beliefs,
       dreamPromptUsed: json['dream_prompt_used']?.toString(),
       intentTrajectory: json['intent_trajectory']?.toString(),

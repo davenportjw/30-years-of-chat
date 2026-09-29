@@ -36,7 +36,6 @@ void main() {
         ),
       ];
 
-      final pacing = PacingMode(paused: false, intervalSeconds: 8);
       Era? selectedEra = eras.first;
 
       tester.view.physicalSize = const Size(1280, 800);
@@ -51,8 +50,6 @@ void main() {
               eras: eras,
               selectedEra: selectedEra,
               onSelectEra: (e) => selectedEra = e,
-              pacing: pacing,
-              onUpdatePacing: (_) {},
               onReseed: () {},
             ),
           ),
@@ -80,7 +77,6 @@ void main() {
         ),
       ];
 
-      final pacing = PacingMode(paused: false, intervalSeconds: 8);
       bool drawerToggled = false;
 
       tester.view.physicalSize = const Size(1920, 1080);
@@ -95,8 +91,6 @@ void main() {
               eras: eras,
               selectedEra: eras.first,
               onSelectEra: (_) {},
-              pacing: pacing,
-              onUpdatePacing: (_) {},
               onReseed: () {},
               isArchitectureDrawerOpen: false,
               onToggleArchitectureDrawer: () => drawerToggled = true,
@@ -355,6 +349,47 @@ void main() {
       expect(find.text('Checking table lock logs for Apollo transactions'), findsOneWidget);
       // Verify Thread header in drawer
       expect(find.text('Thread Scratchpad'), findsOneWidget);
+      // Default width badge is 430px
+      expect(find.text('430px'), findsOneWidget);
+
+      // Verify preset button 'Wide' expands thread scratchpad to 650px
+      await tester.tap(find.text('Wide'));
+      await tester.pumpAndSettle();
+      expect(find.text('650px'), findsOneWidget);
+
+      // Verify preset button 'Std' returns thread scratchpad to 430px
+      await tester.tap(find.text('Std'));
+      await tester.pumpAndSettle();
+      expect(find.text('430px'), findsOneWidget);
+
+      // Verify Maximize button maximizes drawer to MAX badge and hides main stream
+      await tester.tap(find.byIcon(Icons.open_in_full));
+      await tester.pumpAndSettle();
+      expect(find.text('MAX'), findsOneWidget);
+      expect(find.byIcon(Icons.close_fullscreen), findsOneWidget);
+
+      // Restore split view
+      await tester.tap(find.byIcon(Icons.close_fullscreen));
+      await tester.pumpAndSettle();
+      expect(find.text('430px'), findsOneWidget);
+
+      // Verify Collapsible root prompt in thread drawer
+      expect(find.text('Collapse root'), findsOneWidget);
+      await tester.tap(find.text('Collapse root'));
+      await tester.pumpAndSettle();
+      expect(find.text('Expand root'), findsOneWidget);
+
+      // Verify resize handle is present and responds to drag
+      final resizeHandle = find.byTooltip('Drag left/right to resize • Double-click to toggle width');
+      expect(resizeHandle, findsOneWidget);
+      await tester.drag(resizeHandle, const Offset(-100, 0));
+      await tester.pumpAndSettle();
+      // Dragging to the left should increase width beyond initial 430px
+      expect(find.text('430px'), findsNothing);
+      expect(
+        find.byWidgetPredicate((w) => w is Text && RegExp(r'^\d+px$').hasMatch(w.data ?? '')),
+        findsOneWidget,
+      );
     });
   });
 
@@ -491,6 +526,88 @@ void main() {
 
       // Verify presence name and 3-panel elements render
       expect(find.text('Lead Coordinator'), findsWidgets);
+      expect(find.text('Channels'), findsOneWidget);
+      expect(find.text('Agents (1)'), findsOneWidget);
+      expect(find.text('Dual-Layer: Blackboard + Scratchpad'), findsNothing);
+      expect(find.text('Gemini 3.8 Flash'), findsNothing);
+      expect(find.text('1. Onboarding Stack'), findsOneWidget);
+      expect(find.text('2. Security Boundary'), findsOneWidget);
+      expect(find.text('3. Trigger Dreaming'), findsOneWidget);
+      expect(find.text('4. Recall Probe'), findsOneWidget);
+    });
+
+    testWidgets('Tapping scenario pills immediately posts messages and triggers dreaming', (WidgetTester tester) async {
+      final chanMesh = Channel(
+        id: 'chan-2026-mesh',
+        eraId: 'era-2026-mesh',
+        name: 'mesh-blackboard',
+        topic: 'Autonomous Multi-Agent Mesh',
+        description: 'Blackboard',
+        systemPrompt: 'Mesh coordinator',
+        retentionHours: 720,
+      );
+
+      final presences = [
+        AgentPresence(
+          agentId: 'coordinator',
+          agentName: 'Lead Coordinator',
+          avatarUrl: '',
+          status: 'online',
+          statusMessage: 'Coordinating distributed reasoning',
+          currentTask: 'Supervising agent threads',
+          lastHeartbeat: DateTime.now(),
+        ),
+      ];
+
+      final sentMessages = <String>[];
+      bool dreamingTriggered = false;
+
+      tester.view.physicalSize = const Size(1600, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AgentMeshView(
+              channels: [chanMesh],
+              selectedChannel: chanMesh,
+              onSelectChannel: (_) {},
+              messages: const [],
+              presences: presences,
+              consolidationReports: const [],
+              isDreaming: false,
+              onSendMessage: (msg) => sentMessages.add(msg),
+              onInjectEvent: (_, _) {},
+              onTriggerDreaming: () async {
+                dreamingTriggered = true;
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Tap Pill 1 (Onboarding Stack)
+      await tester.tap(find.text('1. Onboarding Stack'));
+      await tester.pump();
+      expect(sentMessages, contains('Swarm consensus: Standardize deployment on Google Cloud Run, Terraform, and Google BigQuery with Gemini 3.8.'));
+
+      // Tap Pill 2 (Security Boundary)
+      await tester.tap(find.text('2. Security Boundary'));
+      await tester.pump();
+      expect(sentMessages, contains('Security constraint: Zero-trust credentials, auth tokens, and raw tool traces must remain strictly isolated inside private scratchpads.'));
+
+      // Tap Pill 3 (Trigger Dreaming)
+      await tester.tap(find.text('3. Trigger Dreaming'));
+      await tester.pump();
+      expect(dreamingTriggered, isTrue);
+
+      // Tap Pill 4 (Recall Probe)
+      await tester.ensureVisible(find.text('4. Recall Probe'));
+      await tester.tap(find.text('4. Recall Probe'));
+      await tester.pump();
+      expect(sentMessages, contains('What deployment stack and security policies did the multi-agent swarm establish?'));
     });
   });
 
@@ -533,8 +650,6 @@ void main() {
                   eras: [era],
                   selectedEra: era,
                   onSelectEra: (_) {},
-                  pacing: PacingMode(paused: false, intervalSeconds: 8),
-                  onUpdatePacing: (_) {},
                   onReseed: () {},
                   isArchitectureDrawerOpen: isOpen,
                   onToggleArchitectureDrawer: () => setState(() => isOpen = !isOpen),

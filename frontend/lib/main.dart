@@ -57,7 +57,6 @@ class _ChatWorkspaceScreenState extends State<ChatWorkspaceScreen> {
 
   Message? _inspectorMessage;
 
-  PacingMode _pacing = PacingMode(paused: false, intervalSeconds: 8);
   bool _isLoading = true;
   bool _isReseeding = false;
   bool _isDreaming = false;
@@ -80,13 +79,11 @@ class _ChatWorkspaceScreenState extends State<ChatWorkspaceScreen> {
       final eras = await _apiService.fetchEras();
       final channels = await _apiService.fetchChannels();
       final presences = await _apiService.fetchPresences();
-      final pacing = await _apiService.fetchPacing();
 
       setState(() {
         _eras = eras;
         _channels = channels;
         _presences = presences;
-        _pacing = pacing;
 
         if (eras.isNotEmpty) {
           _selectedEra = eras.first;
@@ -140,10 +137,7 @@ class _ChatWorkspaceScreenState extends State<ChatWorkspaceScreen> {
           if (!mounted) return;
           _initialize();
         },
-        onPacingUpdated: (newPacing) {
-          if (!mounted) return;
-          setState(() => _pacing = newPacing);
-        },
+        onPacingUpdated: (newPacing) {},
         onPresenceUpdated: (presence) {
           if (!mounted) return;
           setState(() {
@@ -464,15 +458,6 @@ class _ChatWorkspaceScreenState extends State<ChatWorkspaceScreen> {
     }
   }
 
-  Future<void> _onUpdatePacing(PacingMode newPacing) async {
-    setState(() => _pacing = newPacing);
-    try {
-      await _apiService.updatePacing(newPacing);
-    } catch (e) {
-      debugPrint('Update pacing error: $e');
-    }
-  }
-
   Future<void> _onExecuteScriptStep(ShowcaseScriptStep step) async {
     // 1. Ensure era and channel are selected
     final era = _eras.firstWhere((e) => e.id == step.eraId, orElse: () => _selectedEra!);
@@ -662,8 +647,6 @@ class _ChatWorkspaceScreenState extends State<ChatWorkspaceScreen> {
         eras: _eras,
         selectedEra: _selectedEra,
         onSelectEra: _onSelectEra,
-        pacing: _pacing,
-        onUpdatePacing: _onUpdatePacing,
         onReseed: _onReseed,
         isReseeding: _isReseeding,
         isArchitectureDrawerOpen: _isArchitectureDrawerOpen,

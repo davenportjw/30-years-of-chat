@@ -212,10 +212,22 @@ func (o *Orchestrator) HandleIncomingUserMessage(ctx context.Context, channelID 
 		targetRole = DevResearcher
 	} else if strings.Contains(content, "@lead") {
 		targetRole = LeadCoordinator
-	} else if channelID == "chan-incident-postmortem" && (strings.Contains(lowerContent, "adr") || strings.Contains(lowerContent, "spanner") || strings.Contains(lowerContent, "vector") || strings.Contains(lowerContent, "postmortem") || strings.Contains(lowerContent, "latency") || strings.Contains(lowerContent, "lock")) {
+	} else if channelID == "chan-incident-postmortem" && (strings.Contains(lowerContent, "adr") || strings.Contains(lowerContent, "database") || strings.Contains(lowerContent, "vector") || strings.Contains(lowerContent, "postmortem") || strings.Contains(lowerContent, "latency") || strings.Contains(lowerContent, "lock")) {
 		targetRole = DevResearcher
 	} else if channelID == "chan-2006-campfire-eng" && (strings.Contains(lowerContent, "research") || strings.Contains(lowerContent, "vector") || strings.Contains(lowerContent, "benchmark")) {
 		targetRole = DevResearcher
+	} else if channelID == "chan-product-launch" || (ch != nil && (ch.EraID == "era-2026-agent-mesh" || strings.Contains(ch.EraID, "2026"))) || strings.Contains(channelID, "product-launch") {
+		if strings.Contains(lowerContent, "security") || strings.Contains(lowerContent, "credentials") || strings.Contains(lowerContent, "scratchpad") || strings.Contains(lowerContent, "isolation") {
+			targetRole = StaffArchitectScribe
+		} else if strings.Contains(lowerContent, "consensus") {
+			if strings.Contains(lowerContent, "summary") || strings.Contains(lowerContent, "checkpoint") || strings.Contains(lowerContent, "record") || strings.Contains(lowerContent, "audit") {
+				targetRole = StaffArchitectScribe
+			} else {
+				targetRole = LeadCoordinator
+			}
+		} else if strings.Contains(lowerContent, "recall") || strings.Contains(lowerContent, "deployment") || strings.Contains(lowerContent, "stack") {
+			targetRole = LeadCoordinator
+		}
 	}
 
 	// Trigger agent response asynchronously to avoid blocking user HTTP call
@@ -226,6 +238,11 @@ func (o *Orchestrator) HandleIncomingUserMessage(ctx context.Context, channelID 
 	}(targetRole, userMsg)
 
 	return &userMsg, nil
+}
+
+// HandleUserMessage processes a message sent by a human user (alias for HandleIncomingUserMessage).
+func (o *Orchestrator) HandleUserMessage(ctx context.Context, channelID string, threadID string, content string, senderName string) (*storage.Message, error) {
+	return o.HandleIncomingUserMessage(ctx, channelID, threadID, content, senderName)
 }
 
 // InjectScenarioEvent injects an external operational event (e.g. Sentry alert or PR ready).
@@ -510,7 +527,7 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 		return nil, fmt.Errorf("failed to fetch recent messages: %w", err)
 	}
 
-	// 2. Long-Term Memory (Spanner Vector Search)
+	// 2. Long-Term Memory (Vector Search RAG)
 	// Vector RAG must ONLY run if the era has vector search capabilities (era-2013-slack, era-2017-threads, era-2026-agent-mesh, or scoped era-2006-campfire).
 	// Strictly exclude era-1988-irc and era-1997-aim.
 	var vectorHits []storage.VectorSearchResult
@@ -553,7 +570,7 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 			ThreadID:    threadID,
 			Action:      "VECTOR_SEARCH",
 			ActiveStep:  vecStep,
-			Title:       "Spanner Vector Search: Exact Cosine Distance",
+			Title:       "Vector Search: Exact Cosine Distance",
 			Description: fmt.Sprintf("Retrieved %d semantic memory vectors via exact cosine distance.", len(vectorHits)),
 			LatencyMs:   vecLatency,
 			Metrics: map[string]interface{}{
@@ -751,10 +768,10 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 
 	if len(vectorHits) > 0 {
 		tags = append(tags, storage.IntentTag{
-			Label:       fmt.Sprintf("Spanner Vector Hit: %.2f sim", vectorHits[0].Similarity),
+			Label:       fmt.Sprintf("Vector Hit: %.2f sim", vectorHits[0].Similarity),
 			Type:        "vector_hit",
 			Color:       "blue",
-			Description: "Long-Term Memory Search: Spanner Vector Search injected historical ADR into context.",
+			Description: "Long-Term Memory Search: Vector Search injected historical ADR into context.",
 		})
 	}
 
@@ -1024,6 +1041,11 @@ Synthesize durable architectural facts, intent trajectories, and crystallized be
 	}
 	beliefs = dedupedBeliefs
 
+	completedAt := time.Now()
+	for i := range beliefs {
+		beliefs[i].GeneratedAt = completedAt
+	}
+
 	report := storage.ConsolidationReport{
 		ID:                  fmt.Sprintf("dream-%d", time.Now().UnixNano()),
 		ChannelID:           channelID,
@@ -1033,12 +1055,45 @@ Synthesize durable architectural facts, intent trajectories, and crystallized be
 		CrystallizedBeliefs: beliefs,
 		DreamPromptUsed:     exactDreamPrompt,
 		IntentTrajectory:    intentTrajectory,
-		CompletedAt:         time.Now(),
+		CompletedAt:         completedAt,
 	}
 
 	if err := o.store.SaveConsolidationReport(ctx, report); err != nil {
 		return nil, err
 	}
+
+	// Post rich consolidation milestone system message into the chat channel
+	milestoneContent := fmt.Sprintf("🌙 **REM Dreaming Consolidation Complete**\n\n"+
+		"**Insight Summary:**\n%s\n\n"+
+		"• **Ephemeral Turns Pruned:** %d turns\n"+
+		"• **Durable Principles Distilled:** %d facts\n"+
+		"• **Crystallized Beliefs:** %d semantic memories indexed into long-term memory",
+		report.InsightSummary, report.PrunedMessages, len(report.DistilledFacts), len(report.CrystallizedBeliefs))
+
+	milestoneMsg := storage.Message{
+		ID:         fmt.Sprintf("msg-dream-%d", time.Now().UnixNano()),
+		ChannelID:  channelID,
+		SenderType: "system",
+		SenderID:   "rem-dreaming-engine",
+		SenderName: "REM Dreaming Engine",
+		AvatarURL:  "https://api.dicebear.com/7.x/bottts/svg?seed=dreaming",
+		Content:    milestoneContent,
+		TokenCount: len(strings.Fields(milestoneContent)) * 2,
+		IntentTags: []storage.IntentTag{
+			{
+				Label:       "🌙 REM Dreaming Consolidation",
+				Type:        "compaction",
+				Color:       "purple",
+				Description: fmt.Sprintf("Offline REM memory consolidation pass pruned %d ephemeral messages and crystallized %d durable beliefs into long-term semantic memory.", report.PrunedMessages, len(report.CrystallizedBeliefs)),
+			},
+		},
+		CreatedAt: completedAt,
+	}
+
+	if err := o.store.SaveMessage(ctx, milestoneMsg); err != nil {
+		return nil, fmt.Errorf("failed to save dreaming milestone message: %w", err)
+	}
+	o.broadcast("new_message", milestoneMsg)
 
 	dreamSpan := storage.TelemetrySpan{
 		ID:          fmt.Sprintf("span-%d", time.Now().UnixNano()),

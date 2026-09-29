@@ -49,14 +49,14 @@ async def test_scene_2013_vector_embeddings_and_rag_grounding(client: httpx.Asyn
         for tag in m.get("intent_tags", [])
     ]
     assert any("Vector Hit" in label for label in all_intent_labels), (
-        f"Expected Spanner Vector Hit tag, found: {all_intent_labels}"
+        f"Expected Vector Hit tag, found: {all_intent_labels}"
     )
 
 
 @pytest.mark.asyncio
 async def test_scene_2013_inbound_webhook_event_injection(client: httpx.AsyncClient):
     """Verifies sensory webhook ingestion via /api/channels/{id}/events."""
-    event_title = "Cloud Monitoring Alert: Spanner Storage Lock Latency Spike"
+    event_title = "Cloud Monitoring Alert: Database Storage Lock Latency Spike"
     event_details = "p99 lock wait exceeded 250ms on shard 3 during schema compaction."
 
     # Step 1: Inject sensory event webhook

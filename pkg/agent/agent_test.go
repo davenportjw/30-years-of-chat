@@ -531,7 +531,7 @@ func TestMemoryTelemetryBroadcasting(t *testing.T) {
 	}
 
 	// 6. Verify VECTOR_SEARCH span (DevResearcher in chan-incident-postmortem)
-	_, _ = orch.TriggerAgentResponse(ctx, "chan-incident-postmortem", "", DevResearcher, "What is past history on Spanner?")
+	_, _ = orch.TriggerAgentResponse(ctx, "chan-incident-postmortem", "", DevResearcher, "What is past history on database?")
 	vectorSearches := getSpansByAction("VECTOR_SEARCH")
 	if len(vectorSearches) == 0 {
 		t.Fatalf("expected VECTOR_SEARCH telemetry span")
@@ -540,8 +540,8 @@ func TestMemoryTelemetryBroadcasting(t *testing.T) {
 	if vs.ActiveStep != 3 {
 		t.Errorf("expected VECTOR_SEARCH ActiveStep 3, got %d", vs.ActiveStep)
 	}
-	if vs.Title != "Spanner Vector Search: Exact Cosine Distance" {
-		t.Errorf("expected Title 'Spanner Vector Search: Exact Cosine Distance', got %s", vs.Title)
+	if vs.Title != "Vector Search: Exact Cosine Distance" {
+		t.Errorf("expected Title 'Vector Search: Exact Cosine Distance', got %s", vs.Title)
 	}
 	if vs.Metrics["similarity"] == nil || vs.Metrics["distance"] == nil || vs.Metrics["hit_count"] == nil {
 		t.Errorf("expected similarity, distance, and hit_count in metrics: %+v", vs.Metrics)
@@ -951,5 +951,239 @@ func TestConsolidateMemory_Deduplication(t *testing.T) {
 	if keyCounts["spanner_vector_search"] != 1 {
 		t.Errorf("expected spanner_vector_search count 1, got %d", keyCounts["spanner_vector_search"])
 	}
+}
+
+func TestConsolidateMemory_GeneratedAtAndMilestoneMessage(t *testing.T) {
+	ctx := context.Background()
+	store := storage.NewInMemStore()
+	if err := store.ResetAndSeed(ctx); err != nil {
+		t.Fatalf("failed to seed store: %v", err)
+	}
+
+	var broadcastMessages []storage.Message
+	var mu sync.Mutex
+	broadcaster := func(evt string, p interface{}) {
+		mu.Lock()
+		defer mu.Unlock()
+		if evt == "new_message" {
+			if msg, ok := p.(storage.Message); ok {
+				broadcastMessages = append(broadcastMessages, msg)
+			}
+		}
+	}
+
+	dreamJSON := `{
+  "summary": "Standardized on Cloud Run with Gemini 3.8 and BigQuery.",
+  "intent_trajectory": "Discussion -> REM Consolidation",
+  "distilled_facts": [
+    "Production stack uses Cloud Run in davenport-boutique."
+  ],
+  "crystallized_beliefs": [
+    {
+      "key": "cloud_run_orchestration",
+      "value": "Cloud Run container orchestration",
+      "category": "Infrastructure",
+      "confidence": 0.99,
+      "keywords": "cloud run, orchestration",
+      "statement": "Production container runs on Cloud Run."
+    }
+  ]
+}`
+
+	os.Setenv("GCP_ACCESS_TOKEN", "test-token-dream")
+	defer os.Unsetenv("GCP_ACCESS_TOKEN")
+
+	cfg := GeminiConfig{
+		ProjectID: "davenport-boutique",
+		Location:  "us-central1",
+		Model:     "gemini-3.8-flash",
+	}
+	gemini := NewGeminiClient(cfg)
+	gemini.SetTransport(roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		resp := map[string]interface{}{
+			"candidates": []map[string]interface{}{
+				{
+					"content": map[string]interface{}{
+						"parts": []map[string]interface{}{
+							{"text": dreamJSON},
+						},
+					},
+					"finishReason": "STOP",
+				},
+			},
+			"usageMetadata": map[string]interface{}{
+				"promptTokenCount":     150,
+				"candidatesTokenCount": 80,
+				"totalTokenCount":      230,
+			},
+		}
+		respBytes, _ := json.Marshal(resp)
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader(respBytes)),
+			Header:     make(http.Header),
+		}, nil
+	}))
+
+	orch := NewOrchestrator(store, gemini, broadcaster)
+
+	report, err := orch.ConsolidateMemory(ctx, "chan-product-launch")
+	if err != nil {
+		t.Fatalf("ConsolidateMemory failed: %v", err)
+	}
+
+	// 1. Verify GeneratedAt is populated and matches report.CompletedAt
+	if len(report.CrystallizedBeliefs) == 0 {
+		t.Fatalf("expected crystallized beliefs in report")
+	}
+	for _, b := range report.CrystallizedBeliefs {
+		if b.GeneratedAt.IsZero() {
+			t.Errorf("expected belief %s to have non-zero GeneratedAt", b.Key)
+		}
+		if !b.GeneratedAt.Equal(report.CompletedAt) {
+			t.Errorf("expected belief %s GeneratedAt %v to match CompletedAt %v", b.Key, b.GeneratedAt, report.CompletedAt)
+		}
+	}
+
+	// 2. Verify stored crystallized beliefs also have GeneratedAt populated
+	storedBeliefs, err := store.SearchCrystallizedBeliefs(ctx, "chan-product-launch", "cloud_run_orchestration")
+	if err != nil || len(storedBeliefs) == 0 {
+		t.Fatalf("expected to find stored belief cloud_run_orchestration: %v", err)
+	}
+	if storedBeliefs[0].GeneratedAt.IsZero() {
+		t.Errorf("expected stored belief to have non-zero GeneratedAt")
+	}
+
+	// 3. Verify system milestone message in channel message history
+	channelMsgs, err := store.ListMessages(ctx, "chan-product-launch", "", 50)
+	if err != nil {
+		t.Fatalf("failed to list channel messages: %v", err)
+	}
+
+	var milestoneMsg *storage.Message
+	for _, m := range channelMsgs {
+		if m.SenderID == "rem-dreaming-engine" {
+			temp := m
+			milestoneMsg = &temp
+			break
+		}
+	}
+	if milestoneMsg == nil {
+		t.Fatalf("expected milestone system message from rem-dreaming-engine in channel")
+	}
+
+	if milestoneMsg.SenderType != "system" {
+		t.Errorf("expected SenderType 'system', got %s", milestoneMsg.SenderType)
+	}
+	if milestoneMsg.SenderName != "REM Dreaming Engine" {
+		t.Errorf("expected SenderName 'REM Dreaming Engine', got %s", milestoneMsg.SenderName)
+	}
+	if milestoneMsg.AvatarURL != "https://api.dicebear.com/7.x/bottts/svg?seed=dreaming" {
+		t.Errorf("unexpected AvatarURL: %s", milestoneMsg.AvatarURL)
+	}
+	if !strings.Contains(milestoneMsg.Content, "REM Dreaming Consolidation Complete") {
+		t.Errorf("expected content to mention REM Dreaming Consolidation Complete, got: %s", milestoneMsg.Content)
+	}
+	if len(milestoneMsg.IntentTags) == 0 {
+		t.Fatalf("expected IntentTags on milestone message")
+	}
+	tag := milestoneMsg.IntentTags[0]
+	if tag.Label != "🌙 REM Dreaming Consolidation" {
+		t.Errorf("expected IntentTag label '🌙 REM Dreaming Consolidation', got %s", tag.Label)
+	}
+	if tag.Type != "compaction" {
+		t.Errorf("expected IntentTag type 'compaction', got %s", tag.Type)
+	}
+	if tag.Color != "purple" {
+		t.Errorf("expected IntentTag color 'purple', got %s", tag.Color)
+	}
+
+	// 4. Verify message broadcasted via new_message
+	mu.Lock()
+	var broadcastedMilestone *storage.Message
+	for _, bm := range broadcastMessages {
+		if bm.SenderID == "rem-dreaming-engine" {
+			tMsg := bm
+			broadcastedMilestone = &tMsg
+			break
+		}
+	}
+	mu.Unlock()
+	if broadcastedMilestone == nil {
+		t.Fatalf("expected milestone message to be broadcasted via new_message event")
+	}
+}
+
+func TestHandleUserMessage_2026RoleRouting(t *testing.T) {
+	ctx := context.Background()
+	store := storage.NewInMemStore()
+	_ = store.ResetAndSeed(ctx)
+
+	var mu sync.Mutex
+	var lastTargetRole string
+	broadcaster := func(evt string, p interface{}) {
+		mu.Lock()
+		defer mu.Unlock()
+		if evt == "agent_typing" {
+			if m, ok := p.(map[string]string); ok {
+				lastTargetRole = m["agent_id"]
+			}
+		}
+	}
+
+	gemini := NewGeminiClient(DefaultGeminiConfig())
+	orch := NewOrchestrator(store, gemini, broadcaster)
+
+	channelID := "chan-product-launch"
+
+	// Helper to reset and capture role
+	checkRole := func(content string, expectedRoleID string) {
+		mu.Lock()
+		lastTargetRole = ""
+		mu.Unlock()
+
+		_, err := orch.HandleUserMessage(ctx, channelID, "", content, "Jason Davenport")
+		if err != nil {
+			t.Fatalf("HandleUserMessage failed for %q: %v", content, err)
+		}
+
+		deadline := time.Now().Add(500 * time.Millisecond)
+		for time.Now().Before(deadline) {
+			mu.Lock()
+			role := lastTargetRole
+			mu.Unlock()
+			if role != "" {
+				break
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+
+		mu.Lock()
+		actual := lastTargetRole
+		mu.Unlock()
+
+		if actual != expectedRoleID {
+			t.Errorf("query %q: expected role %s, got %s", content, expectedRoleID, actual)
+		}
+	}
+
+	// 1. Unaddressed messages with "security", "credentials", "scratchpad", "isolation" -> StaffArchitectScribe
+	checkRole("Review our security policies for Cloud Run", StaffArchitectScribe.ID)
+	checkRole("Verify Google Cloud ADC credentials in production", StaffArchitectScribe.ID)
+	checkRole("Check private scratchpad boundaries between agents", StaffArchitectScribe.ID)
+	checkRole("Verify memory isolation across the multi-agent mesh", StaffArchitectScribe.ID)
+
+	// 2. Unaddressed messages with "deployment", "stack", "recall", "consensus" -> LeadCoordinator
+	checkRole("What is our production deployment stack?", LeadCoordinator.ID)
+	checkRole("Recall the agreed infrastructure components", LeadCoordinator.ID)
+	checkRole("Swarm consensus reached on next steps", LeadCoordinator.ID)
+
+	// 3. Consensus checkpoint / summary -> StaffArchitectScribe
+	checkRole("Consensus summary and checkpoint record", StaffArchitectScribe.ID)
+
+	// 4. Explicit mentions override default topic routing
+	checkRole("@lead verify our security policies and credentials", LeadCoordinator.ID)
+	checkRole("@scribe check deployment stack status", StaffArchitectScribe.ID)
+	checkRole("@researcher check historical vector index", DevResearcher.ID)
 }
 

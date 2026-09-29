@@ -72,7 +72,7 @@ void main() {
       );
       expect(
         EraArchitectureCatalog.getArchitecture('era-2013-slack').cognitiveConcept,
-        equals('Long-Term Memory (LTM) & Spanner Vector RAG'),
+        equals('Long-Term Memory (LTM) & Vector Search RAG'),
       );
       expect(
         EraArchitectureCatalog.getArchitecture('era-2017-threads').cognitiveConcept,
@@ -226,7 +226,7 @@ void main() {
 
       final expectedActions = {
         'action-era1-overflow': {
-          'label': 'Simulate Amnesia Trap (6 Turns)',
+          'label': 'Simulate FIFO Buffer Eviction (6 Turns)',
           'eraId': 'era-1988-irc',
           'spanAction': 'FIFO_EVICT',
           'isDestructive': true,
@@ -244,7 +244,7 @@ void main() {
           'isDestructive': true,
         },
         'action-era4-vector-query': {
-          'label': 'Run Spanner Vector RAG Query',
+          'label': 'Run Vector RAG Query',
           'eraId': 'era-2013-slack',
           'spanAction': 'VECTOR_SEARCH',
           'isDestructive': false,

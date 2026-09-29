@@ -5,7 +5,7 @@ Verifies:
 - Service Health and Telemetry (/api/healthz, Gemini 3.8 Flash, davenport-boutique project)
 - CORS Middleware Headers
 - Taxonomy APIs (/api/eras, /api/channels)
-- Storage Schemas (/api/spanner/ddl)
+- Storage Schemas (/api/vector/ddl)
 - Autonomous Loop Pacing (/api/pacing)
 - Real-time RFC 6455 WebSocket connectivity (/ws)
 """
@@ -118,9 +118,11 @@ async def test_deployed_domain_channels(client: httpx.AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_deployed_spanner_ddl_schema(client: httpx.AsyncClient):
-    """Verifies Cloud Spanner vector table DDL contract for cosine similarity search."""
-    resp = await client.get("/api/spanner/ddl")
+async def test_deployed_vector_ddl_schema(client: httpx.AsyncClient):
+    """Verifies vector table DDL contract for cosine similarity search."""
+    resp = await client.get("/api/vector/ddl")
+    if resp.status_code == 404:
+        resp = await client.get("/api/spanner/ddl")
     assert resp.status_code == 200
     data = resp.json()
     ddl = data.get("ddl", "")

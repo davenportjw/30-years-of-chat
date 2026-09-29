@@ -59,13 +59,14 @@ type PrivateScratchpad struct {
 
 // CrystallizedBelief represents an immutable, high-confidence consolidated fact distilled during REM dreaming.
 type CrystallizedBelief struct {
-	Key        string    `json:"key"`
-	Value      string    `json:"value"`
-	Category   string    `json:"category"`
-	Confidence float64   `json:"confidence"`
-	Keywords   string    `json:"keywords"`
-	Statement  string    `json:"statement"`
-	Embedding  []float64 `json:"embedding,omitempty"`
+	Key         string    `json:"key"`
+	Value       string    `json:"value"`
+	Category    string    `json:"category"`
+	Confidence  float64   `json:"confidence"`
+	Keywords    string    `json:"keywords"`
+	Statement   string    `json:"statement"`
+	Embedding   []float64 `json:"embedding,omitempty"`
+	GeneratedAt time.Time `json:"generated_at,omitempty"`
 }
 
 // UnmarshalJSON supports unmarshaling keywords from either a JSON array or a comma-separated string.

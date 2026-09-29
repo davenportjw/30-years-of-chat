@@ -42,7 +42,7 @@ async def test_scene_2017_scribe_compaction_summaries(client: httpx.AsyncClient)
     summary = next((s for s in summaries if s.get("thread_id") == EXISTING_THREAD_ID), summaries[0])
     assert summary["original_tokens"] > summary["compacted_tokens"]
     assert summary["compression_ratio"] > 0.90, f"Expected >90% compression, got {summary['compression_ratio']}"
-    assert "Cloud Spanner" in summary["condensed_state"] or "CONSENSUS" in summary["condensed_state"]
+    assert "synchronous 2PC" in summary["condensed_state"] or "CONSENSUS" in summary["condensed_state"]
 
 
 @pytest.mark.asyncio
@@ -57,7 +57,7 @@ async def test_scene_2017_subtask_thread_isolation(client: httpx.AsyncClient):
     root_ids_before = {m["id"] for m in root_messages_before}
 
     # Step 2: Post a turn strictly inside the sub-task thread
-    thread_msg_content = "Subtask Deliberation: Benchmarking Spanner 2PC latency vs eventual consistency"
+    thread_msg_content = "Subtask Deliberation: Benchmarking distributed 2PC latency vs eventual consistency"
     post_resp = await client.post(
         f"/api/channels/{RFC_CHANNEL}/messages",
         json={

@@ -58,7 +58,7 @@ When requested or when summarizing:
 		MemoryConcept:      "Long-Term Memory Retrieval & Grounding",
 		DefaultIntentColor: "blue",
 		BaseSystemPrompt: `You are the Dev Researcher in the "Agents of Chat" system.
-Your mission is to retrieve relevant historical knowledge from Cloud Spanner long-term memory (past ADRs, incident post-mortems, and code patterns).
+Your mission is to retrieve relevant historical knowledge from persistent vector long-term memory (past ADRs, incident post-mortems, and code patterns).
 When asked questions about history or technical design:
 1. Synthesize answers directly referencing the retrieved historical memories.
 2. Cite the specific record (e.g., ADR-019, INC-2026-04).
@@ -147,7 +147,7 @@ func BuildAgentPrompt(role AgentRole, ch storage.Channel, recentMsgs []storage.M
 	case strings.Contains(eraID, "2006") || year == 2006:
 		sysBuilder.WriteString("• Scoped Room & Topic Boundary: Enforce room topic and role boundary rules. Quarantined domain parameters must stay fenced to this room. Firmly reject out-of-domain queries to prevent prompt contamination and associative bleed.\n")
 	case strings.Contains(eraID, "2013") || year == 2013:
-		sysBuilder.WriteString("• Long-Term Memory Grounding Boundary: Enforce grounding in retrieved Spanner records. Ground all factual assertions, historical precedents, and system details in retrieved Spanner vector records and verifiable event history.\n")
+		sysBuilder.WriteString("• Long-Term Memory Grounding Boundary: Enforce grounding in retrieved vector records. Ground all factual assertions, historical precedents, and system details in retrieved vector search records and verifiable event history.\n")
 	case strings.Contains(eraID, "2017") || year == 2017:
 		sysBuilder.WriteString("• Thread Isolation & Scribe Compaction Boundary: Sub-task investigations must remain quarantined in thread scratchpads. Direct Scribe to compact sub-task turns into structured rollups (Timeline, Root Cause, Mitigations, Action Items) to protect token budgets.\n")
 	case strings.Contains(eraID, "2026") || year == 2026:
@@ -173,7 +173,7 @@ func BuildAgentPrompt(role AgentRole, ch storage.Channel, recentMsgs []storage.M
 
 	// If there are long-term memory vector hits, inject them as Long-Term Knowledge
 	if len(vectorHits) > 0 {
-		promptBuilder.WriteString("### Retrieved Long-Term Memory (Spanner Vector Search):\n")
+		promptBuilder.WriteString("### Retrieved Long-Term Memory (Vector Search):\n")
 		for i, hit := range vectorHits {
 			promptBuilder.WriteString(fmt.Sprintf("[%d] (similarity: %.2f) %s: %s\n", i+1, hit.Similarity, hit.Message.SenderName, hit.Message.Content))
 		}

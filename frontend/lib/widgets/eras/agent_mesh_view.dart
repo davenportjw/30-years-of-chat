@@ -109,7 +109,12 @@ class AgentMeshView extends StatefulWidget {
     for (final r in reports) {
       List<CrystallizedBelief> reportBeliefs = [];
       if (r.crystallizedBeliefs.isNotEmpty) {
-        reportBeliefs = r.crystallizedBeliefs;
+        reportBeliefs = r.crystallizedBeliefs.map((b) {
+          if (b.generatedAt == null) {
+            return b.copyWith(generatedAt: r.completedAt);
+          }
+          return b;
+        }).toList();
       } else if (r.distilledFacts.isNotEmpty) {
         for (int i = 0; i < r.distilledFacts.length; i++) {
           final fact = r.distilledFacts[i];
@@ -136,6 +141,7 @@ class AgentMeshView extends StatefulWidget {
             confidence: 0.95 + (i * 0.01).clamp(0.0, 0.04),
             keywords: kw,
             statement: fact,
+            generatedAt: r.completedAt,
           ));
         }
       }
@@ -164,6 +170,7 @@ class AgentMeshView extends StatefulWidget {
     }
 
     if (uniqueBeliefs.isEmpty) {
+      final now = DateTime.now();
       final defaults = [
         CrystallizedBelief(
           key: 'sec_auth_adc',
@@ -172,6 +179,7 @@ class AgentMeshView extends StatefulWidget {
           confidence: 0.99,
           keywords: ['ADC', 'Vertex AI', 'Gemini 3.8', 'Auth', 'Zero-Trust'],
           statement: 'ADC auth is mandatory for Vertex AI Gemini 3.8 calls in davenport-boutique.',
+          generatedAt: now.subtract(const Duration(minutes: 25)),
         ),
         CrystallizedBelief(
           key: 'db_vector_search',
@@ -180,6 +188,7 @@ class AgentMeshView extends StatefulWidget {
           confidence: 0.98,
           keywords: ['BigQuery', 'Vector Index', 'Cosine', 'ML.DISTANCE', 'Fast-Path'],
           statement: 'BigQuery vector indexing uses COSINE distance via ML.DISTANCE for sub-15ms fast-path recall.',
+          generatedAt: now.subtract(const Duration(minutes: 20)),
         ),
         CrystallizedBelief(
           key: 'arch_scribe_compaction',
@@ -188,6 +197,7 @@ class AgentMeshView extends StatefulWidget {
           confidence: 0.96,
           keywords: ['Scribe', 'Compaction', 'Token Reduction', 'Rollup'],
           statement: 'Scribe compaction achieves -96% token reduction on threads without semantic degradation.',
+          generatedAt: now.subtract(const Duration(minutes: 15)),
         ),
         CrystallizedBelief(
           key: 'infra_cloud_run',
@@ -196,6 +206,7 @@ class AgentMeshView extends StatefulWidget {
           confidence: 0.97,
           keywords: ['Cloud Run', 'Terraform', 'BigQuery', 'Gemini 3.8'],
           statement: 'Swarm consensus: Standardize deployment on Google Cloud Run, Terraform, and Google BigQuery with Gemini 3.8.',
+          generatedAt: now.subtract(const Duration(minutes: 10)),
         ),
       ];
       for (final d in defaults) {
@@ -331,18 +342,24 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
         widget.onSendMessage(pill1Text);
         break;
       case 2:
-        // Step 2: Private Monologue & Tool Execution (Switches to Tab 3 Scratchpad, demonstrates zero-leakage)
+        // Step 2: Private Monologue & Tool Execution (Auto-posts Pill 2, switches to Tab 3 Scratchpad)
+        const pill2Text = "Security constraint: Zero-trust credentials, auth tokens, and raw tool traces must remain strictly isolated inside private scratchpads.";
+        widget.onSendMessage(pill2Text);
         _focusDrawerTab(3);
         break;
       case 3:
-        // Step 3: REM Sleep Dreaming Consolidation (Triggers live /consolidate cycle with consolidation pulse)
+        // Step 3: REM Sleep Dreaming Consolidation (Auto-posts dreaming dialogue, triggers live dreaming, switches to Tab 2)
+        const pill3Text = "Triggering REM dreaming consolidation cycle across active channel buffer.";
+        widget.onSendMessage(pill3Text);
         _focusDrawerTab(2);
         if (widget.onTriggerDreaming != null) {
           widget.onTriggerDreaming!();
         }
         break;
       case 4:
-        // Step 4: Crystalline Memory Lens Inspection (Switches to Tab 2 Dreaming, highlights newly crystallized beliefs)
+        // Step 4: Crystalline Memory Lens Inspection (Auto-posts inspection dialogue, switches to Tab 2 Dreaming)
+        const pill4InspectText = "Reviewing crystallized architectural invariants and durable semantic beliefs in Crystalline Store.";
+        widget.onSendMessage(pill4InspectText);
         _focusDrawerTab(2);
         break;
       case 5:
@@ -371,13 +388,6 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
     }
   }
 
-  void _insertPrompt(String text) {
-    _msgController.text = text;
-    _msgController.selection = TextSelection.fromPosition(
-      TextPosition(offset: _msgController.text.length),
-    );
-    _msgFocusNode.requestFocus();
-  }
 
   void _handleInjectCustomEvent() {
     final title = _eventTitleCtrl.text.trim();
@@ -494,35 +504,11 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
             ),
           ),
 
-          // Dual-Layer Memory Concept Pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: SepiaTheme.primaryLight,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: SepiaTheme.primary.withValues(alpha: 0.2)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.layers_outlined, size: 13, color: SepiaTheme.primary),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Dual-Layer: Blackboard + Scratchpad',
-                    style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: SepiaTheme.primary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Channel Navigator
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'ACTIVE CHANNEL',
+              'Channels',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -574,7 +560,7 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'SWARM ROSTER (${widget.presences.length})',
+                  'Agents (${widget.presences.length})',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -662,11 +648,6 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
         statusText = 'Available';
     }
 
-    String modelTag = 'Gemini 3.8 Flash';
-    if (p.agentId == 'jason') {
-      modelTag = 'Commander (Human)';
-    }
-
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
@@ -699,26 +680,17 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: SepiaTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  modelTag,
-                  style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: SepiaTheme.primary),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            p.statusMessage,
-            style: const TextStyle(fontSize: 11, color: SepiaTheme.textSecondary),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          if (p.statusMessage.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              p.statusMessage,
+              style: const TextStyle(fontSize: 11, color: SepiaTheme.textSecondary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           if (p.currentTask.isNotEmpty) ...[
             const SizedBox(height: 3),
             Row(
@@ -984,31 +956,23 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
             const SizedBox(width: 4),
             _buildScenarioPill(
               label: '1. Onboarding Stack',
-              tooltip: 'Pill 1 (Onboarding Stack): Swarm consensus on Google Cloud Run, Terraform, and Google BigQuery with Gemini 3.8.',
+              tooltip: 'Pill 1 (Onboarding Stack): Immediately posts swarm consensus on Google Cloud Run, Terraform, and BigQuery with Gemini 3.8.',
               icon: Icons.hub_outlined,
-              onTap: () => _insertPrompt(
+              onTap: () => widget.onSendMessage(
                 'Swarm consensus: Standardize deployment on Google Cloud Run, Terraform, and Google BigQuery with Gemini 3.8.',
               ),
-              onQuickSend: () {
-                _insertPrompt('Swarm consensus: Standardize deployment on Google Cloud Run, Terraform, and Google BigQuery with Gemini 3.8.');
-                _handleSend();
-              },
             ),
             _buildScenarioPill(
               label: '2. Security Boundary',
-              tooltip: 'Pill 2 (Security Boundary): Zero-trust credentials, auth tokens, and raw tool traces must remain strictly isolated inside private scratchpads.',
+              tooltip: 'Pill 2 (Security Boundary): Immediately posts security constraint for zero-trust credentials and private scratchpad isolation.',
               icon: Icons.shield_outlined,
-              onTap: () => _insertPrompt(
+              onTap: () => widget.onSendMessage(
                 'Security constraint: Zero-trust credentials, auth tokens, and raw tool traces must remain strictly isolated inside private scratchpads.',
               ),
-              onQuickSend: () {
-                _insertPrompt('Security constraint: Zero-trust credentials, auth tokens, and raw tool traces must remain strictly isolated inside private scratchpads.');
-                _handleSend();
-              },
             ),
             _buildScenarioPill(
               label: '3. Trigger Dreaming',
-              tooltip: 'Pill 3 (Trigger Dreaming): Triggers live offline REM dreaming consolidation cycle.',
+              tooltip: 'Pill 3 (Trigger Dreaming): Immediately executes live offline REM dreaming consolidation cycle and switches to Crystalline Memory tab.',
               icon: Icons.nightlight_round,
               isHighlighted: widget.isDreaming,
               onTap: () {
@@ -1020,15 +984,11 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
             ),
             _buildScenarioPill(
               label: '4. Recall Probe',
-              tooltip: 'Pill 4 (Recall Probe): Probe fast-path zero-token crystalline recall.',
+              tooltip: 'Pill 4 (Recall Probe): Immediately posts recall probe for deployment stack and security policies.',
               icon: Icons.bolt,
-              onTap: () => _insertPrompt(
+              onTap: () => widget.onSendMessage(
                 'What deployment stack and security policies did the multi-agent swarm establish?',
               ),
-              onQuickSend: () {
-                _insertPrompt('What deployment stack and security policies did the multi-agent swarm establish?');
-                _handleSend();
-              },
             ),
           ],
         ),
@@ -1041,13 +1001,12 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
     required String tooltip,
     required IconData icon,
     required VoidCallback onTap,
-    VoidCallback? onQuickSend,
     bool isHighlighted = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: Tooltip(
-        message: onQuickSend != null ? '$tooltip\n(Click to insert, or click arrow to post immediately)' : tooltip,
+        message: '$tooltip\n(Click to execute immediately in chat)',
         waitDuration: const Duration(milliseconds: 250),
         child: InkWell(
           onTap: onTap,
@@ -1079,21 +1038,12 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
                     color: isHighlighted ? SepiaTheme.primary : SepiaTheme.textPrimary,
                   ),
                 ),
-                if (onQuickSend != null) ...[
-                  const SizedBox(width: 5),
-                  InkWell(
-                    onTap: onQuickSend,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Icon(
-                        Icons.arrow_upward_rounded,
-                        size: 13,
-                        color: isHighlighted ? SepiaTheme.primary : SepiaTheme.accent,
-                      ),
-                    ),
-                  ),
-                ],
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.play_arrow_rounded,
+                  size: 13,
+                  color: isHighlighted ? SepiaTheme.primary : SepiaTheme.accent,
+                ),
               ],
             ),
           ),
@@ -1580,7 +1530,7 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
         ),
 
         const SizedBox(height: 16),
-        _buildSectionHeader('VECTOR RAG SEARCH SPECIFICATION'),
+        _buildSectionHeader('EPISODIC VECTOR SEARCH (APPROXIMATE RAG)'),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
@@ -1589,19 +1539,62 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
             border: Border.all(color: SepiaTheme.border),
             borderRadius: BorderRadius.circular(6),
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Vector Search Index: Cosine Distance (ML.DISTANCE)',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: SepiaTheme.textPrimary),
+              Row(
+                children: [
+                  const Icon(Icons.manage_search, size: 16, color: SepiaTheme.primary),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'What Vector Search Is Actually Doing',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: SepiaTheme.textPrimary),
+                  ),
+                ],
               ),
-              SizedBox(height: 4),
-              Text(
-                '• Dimension: 16-d semantic embeddings\n'
-                '• Metric: COSINE (Exact Distance = 1.0 - CosineSimilarity)\n'
-                '• Grounding: ADR-019, past post-mortems, and architectural RFCs\n'
-                '• Role Fencing: Prevents unprivileged credentials from leaking across agents',
+              const SizedBox(height: 6),
+              const Text(
+                'Vector search converts queries into semantic embeddings to retrieve relevant past episodic transcripts, ADR-019 architecture decision records, incident post-mortems, and historical channel conversations across historical channels.\n\n'
+                '• Semantic Discovery: Uses high-dimensional embedding similarity to ground current reasoning in historical team decisions and incident retrospectives.\n'
+                '• Cross-Channel Grounding: Locates relevant episodic transcripts across historical channels and archived team chatter.\n'
+                '• Role & Scratchpad Fencing: Filters search spaces so credentials, internal auth tokens, and raw scratchpad tool traces are never exposed.\n'
+                '• Search Engine: Google BigQuery ML.DISTANCE cosine distance over 16-d semantic embeddings.',
+                style: TextStyle(fontSize: 11, height: 1.45, color: SepiaTheme.textSecondary),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+        _buildSectionHeader('LONG-TERM SEMANTIC MEMORY (CRYSTALLINE KNOWLEDGE STORE)'),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: SepiaTheme.card,
+            border: Border.all(color: SepiaTheme.border),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.psychology, size: 16, color: SepiaTheme.accent),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Durable Distilled Beliefs & Invariants',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: SepiaTheme.textPrimary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Unlike approximate vector RAG (which retrieves unstructured text chunks that bloat the working context window), the Crystalline Knowledge Store holds durable, consolidated semantic invariants persisted in BigQuery.\n\n'
+                '• Fast-Path Zero-Token Recall: Injected directly into prompts as structured architectural constraints and verified facts without bloating turn budgets or context windows.\n'
+                '• Distilled Invariants: High-confidence rules, stack standardizations, and security boundaries synthesized during offline REM dreaming.\n'
+                '• Fast Deterministic Matching: Direct key/concept indexing enables sub-15ms deterministic recall, whereas approximate vector similarity search requires distance calculations and reranking.\n'
+                '• Durable Persistence: Backed by BigQuery long-term tables with audit trails, confidence scoring (>=95%), and explicit generation timestamps.',
                 style: TextStyle(fontSize: 11, height: 1.45, color: SepiaTheme.textSecondary),
               ),
             ],
@@ -1683,15 +1676,40 @@ class _AgentMeshViewState extends State<AgentMeshView> with SingleTickerProvider
         _buildDatabaseVectorStoreCard(),
         const SizedBox(height: 16),
 
-        // Crystalline Belief Cards Section
-        _buildSectionHeader('CRYSTALLIZED BELIEFS (LONG-TERM MEMORY)'),
+        // Crystalline Belief Rows Section
+        _buildSectionHeader('CRYSTALLIZED BELIEFS (LONG-TERM SEMANTIC MEMORY)'),
         const SizedBox(height: 4),
-        Text(
-          '${beliefs.length} durable architectural facts crystallized with >=95% confidence:',
-          style: const TextStyle(fontSize: 11, color: SepiaTheme.textMuted),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${beliefs.length} durable architectural facts crystallized with >=95% confidence:',
+                style: const TextStyle(fontSize: 11, color: SepiaTheme.textMuted),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3E5F5),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFFCE93D8)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.auto_awesome, size: 10, color: Color(0xFF7B1FA2)),
+                  SizedBox(width: 3),
+                  Text(
+                    'REM Dreaming (Gemini 3.8)',
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF7B1FA2)),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-        ...beliefs.map((b) => _buildCrystallineBeliefCard(b)),
+        _buildCrystallineBeliefsTable(beliefs),
 
         const SizedBox(height: 16),
         _buildSectionHeader('CONSOLIDATION RUN HISTORY (${reportList.length})'),
@@ -2044,7 +2062,66 @@ Consolidate the following conversation from channel #${widget.selectedChannel.na
     return AgentMeshView.extractCrystallizedBeliefs(widget.consolidationReports);
   }
 
-  Widget _buildCrystallineBeliefCard(CrystallizedBelief b) {
+  Widget _buildCrystallineBeliefsTable(List<CrystallizedBelief> beliefs) {
+    if (beliefs.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: SepiaTheme.card,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: SepiaTheme.border),
+        ),
+        child: const Text(
+          'No crystallized beliefs recorded yet.',
+          style: TextStyle(fontSize: 11, color: SepiaTheme.textMuted),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: SepiaTheme.card,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: SepiaTheme.borderStrong),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: const BoxDecoration(
+              color: SepiaTheme.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(5)),
+              border: Border(bottom: BorderSide(color: SepiaTheme.border)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.table_rows_outlined, size: 13, color: SepiaTheme.primary),
+                SizedBox(width: 6),
+                Text(
+                  'Crystalline Beliefs & Invariants',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: SepiaTheme.textPrimary),
+                ),
+                Spacer(),
+                Icon(Icons.auto_awesome, size: 11, color: Color(0xFF7B1FA2)),
+                SizedBox(width: 4),
+                Text(
+                  'REM Dreaming • Gemini 3.8',
+                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF7B1FA2)),
+                ),
+              ],
+            ),
+          ),
+          for (int i = 0; i < beliefs.length; i++) ...[
+            _buildCrystallineBeliefRow(beliefs[i], isLast: i == beliefs.length - 1),
+            if (i < beliefs.length - 1)
+              const Divider(height: 1, thickness: 1, color: SepiaTheme.border),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCrystallineBeliefRow(CrystallizedBelief b, {bool isLast = false}) {
     Color categoryBg;
     Color categoryFg;
 
@@ -2067,108 +2144,129 @@ Consolidate the following conversation from channel #${widget.selectedChannel.na
     }
 
     final pct = (b.confidence * 100).toInt();
+    final timeStr = b.generatedAt != null
+        ? '${b.generatedAt!.hour.toString().padLeft(2, '0')}:${b.generatedAt!.minute.toString().padLeft(2, '0')}:${b.generatedAt!.second.toString().padLeft(2, '0')}'
+        : 'Consolidated';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: SepiaTheme.card,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: SepiaTheme.borderStrong),
+        borderRadius: isLast ? const BorderRadius.vertical(bottom: Radius.circular(5)) : BorderRadius.zero,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: Category badge, Confidence badge, Key tag
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                 decoration: BoxDecoration(
                   color: categoryBg,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                   border: Border.all(color: categoryFg.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   b.category.toUpperCase(),
-                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: categoryFg),
+                  style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: categoryFg),
                 ),
               ),
               const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  b.key,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                    color: SepiaTheme.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                   border: Border.all(color: const Color(0xFF81C784)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.verified, size: 10, color: Color(0xFF2E7D32)),
-                    const SizedBox(width: 3),
+                    const Icon(Icons.verified, size: 9, color: Color(0xFF2E7D32)),
+                    const SizedBox(width: 2),
                     Text(
-                      '$pct% Confidence',
-                      style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                      '$pct%',
+                      style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            b.statement.isNotEmpty ? b.statement : b.value,
+            style: const TextStyle(
+              fontSize: 11,
+              height: 1.35,
+              color: SepiaTheme.textPrimary,
+            ),
+          ),
+          if (b.keywords.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 4,
+              runSpacing: 2,
+              children: b.keywords
+                  .map((kw) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: SepiaTheme.surface,
+                          borderRadius: BorderRadius.circular(2),
+                          border: Border.all(color: SepiaTheme.border),
+                        ),
+                        child: Text(
+                          '#$kw',
+                          style: const TextStyle(fontSize: 8.5, color: SepiaTheme.textSecondary),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3E5F5),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.auto_awesome, size: 9, color: Color(0xFF7B1FA2)),
+                    SizedBox(width: 3),
+                    Text(
+                      'Machine-Generated via REM Dreaming (Gemini 3.8)',
+                      style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w600, color: Color(0xFF7B1FA2)),
                     ),
                   ],
                 ),
               ),
               const Spacer(),
-              Text(
-                b.key,
-                style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: SepiaTheme.textMuted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Belief statement
-          Text(
-            b.statement.isNotEmpty ? b.statement : b.value,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              height: 1.4,
-              color: SepiaTheme.textPrimary,
-            ),
-          ),
-
-          // Keywords tags
-          if (b.keywords.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 5,
-              runSpacing: 4,
-              children: b.keywords.map((kw) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                  decoration: BoxDecoration(
-                    color: SepiaTheme.surface,
-                    borderRadius: BorderRadius.circular(3),
-                    border: Border.all(color: SepiaTheme.border),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.access_time, size: 9, color: SepiaTheme.textMuted),
+                  const SizedBox(width: 3),
+                  Text(
+                    timeStr,
+                    style: const TextStyle(fontSize: 9, color: SepiaTheme.textMuted),
                   ),
-                  child: Text(
-                    '#$kw',
-                    style: const TextStyle(fontSize: 9.5, color: SepiaTheme.textSecondary),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-
-          const SizedBox(height: 8),
-          const Divider(height: 1, color: SepiaTheme.border),
-          const SizedBox(height: 6),
-
-          // Footer
-          const Row(
-            children: [
-              Icon(Icons.bolt, size: 12, color: SepiaTheme.accent),
-              SizedBox(width: 4),
-              Text(
-                'Crystalline Vector Index: Grounded (Cosine ML.DISTANCE)',
-                style: TextStyle(fontSize: 10, color: SepiaTheme.textMuted),
+                ],
               ),
             ],
           ),
