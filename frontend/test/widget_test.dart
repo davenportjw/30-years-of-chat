@@ -259,10 +259,10 @@ void main() {
         ),
       );
 
-      // Verify rooms are visible
-      expect(find.text('#general-lobby'), findsOneWidget);
+      // Verify rooms are visible: selected #general-lobby appears in sidebar & header
+      expect(find.text('#general-lobby'), findsWidgets);
       expect(find.text('#engineering'), findsOneWidget);
-      expect(find.text('#billing-confidential'), findsWidgets);
+      expect(find.text('#billing-confidential'), findsOneWidget);
 
       // Tap on #engineering
       await tester.tap(find.text('#engineering'));

@@ -132,6 +132,9 @@ func (s *InMemStore) SaveMessage(ctx context.Context, msg Message) error {
 	if msg.CreatedAt.IsZero() {
 		msg.CreatedAt = time.Now()
 	}
+	if len(msg.Embedding) == 0 && msg.Content != "" {
+		msg.Embedding = GenerateMessageEmbedding(msg.Content)
+	}
 
 	s.messages[msg.ID] = msg
 

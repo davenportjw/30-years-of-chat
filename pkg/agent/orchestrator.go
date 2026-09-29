@@ -538,9 +538,9 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 		isVectorCapableEra = false
 	}
 
-	if isVectorCapableEra && (role.ID == DevResearcher.ID || strings.Contains(strings.ToLower(triggerPrompt), "history") || strings.Contains(strings.ToLower(triggerPrompt), "past") || strings.Contains(strings.ToLower(triggerPrompt), "vector") || strings.Contains(strings.ToLower(triggerPrompt), "adr")) {
+	if isVectorCapableEra {
 		vecStart := time.Now()
-		vQuery := []float32{0.82, 0.74, 0.21, 0.12, 0.91, 0.15, 0.05, 0.88, 0.79, 0.18, 0.11, 0.85, 0.14, 0.06, 0.83, 0.77}
+		vQuery := storage.GenerateMessageEmbedding(triggerPrompt)
 		
 		// When vector search runs in a scoped era (like Jabber), scope it strictly to channelID to prevent cross-channel memory leakage.
 		searchScope := ""
@@ -778,45 +778,56 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 	}
 
 	if role.ID == StaffArchitectScribe.ID {
-		summary := storage.Summary{
-			ID:               fmt.Sprintf("sum-%d", time.Now().UnixNano()),
-			ChannelID:        channelID,
-			ThreadID:         threadID,
-			CondensedState:   genResult.Text,
-			OriginalTokens:   genResult.PromptTokens,
-			CompactedTokens:  genResult.CandidateTokens,
-			CompressionRatio: 1.0 - (float64(genResult.CandidateTokens) / float64(genResult.PromptTokens+1)),
-			CreatedAt:        time.Now(),
-		}
-		_ = o.store.SaveSummary(ctx, summary)
+		isCompaction := (threadID != "" || ch.EraID == "era-2017-threads" || strings.Contains(strings.ToLower(triggerPrompt), "compact") || strings.Contains(strings.ToLower(triggerPrompt), "summar"))
+		if isCompaction {
+			summary := storage.Summary{
+				ID:               fmt.Sprintf("sum-%d", time.Now().UnixNano()),
+				ChannelID:        channelID,
+				ThreadID:         threadID,
+				CondensedState:   genResult.Text,
+				OriginalTokens:   genResult.PromptTokens,
+				CompactedTokens:  genResult.CandidateTokens,
+				CompressionRatio: 1.0 - (float64(genResult.CandidateTokens) / float64(genResult.PromptTokens+1)),
+				CreatedAt:        time.Now(),
+			}
+			_ = o.store.SaveSummary(ctx, summary)
+			o.broadcast("summary_created", summary)
 
-		tags = append(tags, storage.IntentTag{
-			Label:       fmt.Sprintf("Compacted by Scribe: -%d%% tokens", int(summary.CompressionRatio*100)),
-			Type:        "compaction",
-			Color:       "amber",
-			Description: "Compaction & Summaries: Large conversation window compressed into state checkpoint.",
-		})
+			tags = append(tags, storage.IntentTag{
+				Label:       fmt.Sprintf("Compacted by Scribe: -%d%% tokens", int(summary.CompressionRatio*100)),
+				Type:        "compaction",
+				Color:       "amber",
+				Description: "Compaction & Summaries: Large conversation window compressed into state checkpoint.",
+			})
 
-		scribeStep := 4 // ActiveStep 4 for 2017
-		scribeSpan := storage.TelemetrySpan{
-			ID:          fmt.Sprintf("span-%d", time.Now().UnixNano()),
-			EraID:       ch.EraID,
-			ChannelID:   channelID,
-			ThreadID:    threadID,
-			Action:      "SCRIBE_COMPACT",
-			ActiveStep:  scribeStep,
-			Title:       "Hierarchical Compaction: Scribe State Rollup",
-			Description: fmt.Sprintf("Scribe compacted %d original tokens into %d tokens (%.1f%% reduction).", summary.OriginalTokens, summary.CompactedTokens, summary.CompressionRatio*100),
-			LatencyMs:   0,
-			Metrics: map[string]interface{}{
-				"compression_ratio": summary.CompressionRatio,
-				"original_tokens":   summary.OriginalTokens,
-				"compacted_tokens":  summary.CompactedTokens,
-			},
-			Payload:   summary.CondensedState,
-			Timestamp: time.Now(),
+			scribeStep := 4 // ActiveStep 4 for 2017
+			scribeSpan := storage.TelemetrySpan{
+				ID:          fmt.Sprintf("span-%d", time.Now().UnixNano()),
+				EraID:       ch.EraID,
+				ChannelID:   channelID,
+				ThreadID:    threadID,
+				Action:      "SCRIBE_COMPACT",
+				ActiveStep:  scribeStep,
+				Title:       "Hierarchical Compaction: Scribe State Rollup",
+				Description: fmt.Sprintf("Scribe compacted %d original tokens into %d tokens (%.1f%% reduction).", summary.OriginalTokens, summary.CompactedTokens, summary.CompressionRatio*100),
+				LatencyMs:   0,
+				Metrics: map[string]interface{}{
+					"compression_ratio": summary.CompressionRatio,
+					"original_tokens":   summary.OriginalTokens,
+					"compacted_tokens":  summary.CompactedTokens,
+				},
+				Payload:   summary.CondensedState,
+				Timestamp: time.Now(),
+			}
+			o.broadcast("memory_telemetry", scribeSpan)
+		} else {
+			tags = append(tags, storage.IntentTag{
+				Label:       "Architecture Record Drafted",
+				Type:        "governance",
+				Color:       "amber",
+				Description: "Staff Architect Scribe establishes decision criteria and interface contracts.",
+			})
 		}
-		o.broadcast("memory_telemetry", scribeSpan)
 	}
 
 	agentMsg := storage.Message{
@@ -903,7 +914,7 @@ func (o *Orchestrator) TriggerAgentResponse(ctx context.Context, channelID strin
 	// In the 2026 Collaborative Multi-Agent Mesh, Lead Coordinator coordinates the swarm
 	// and actually calls the other agents (@researcher, @scribe) so the whole swarm actively collaborates.
 	is2026Swarm := ch.EraID == "era-2026-agent-mesh" || strings.Contains(ch.EraID, "2026") || channelID == "chan-product-launch" || strings.Contains(channelID, "product-launch")
-	if is2026Swarm && role.ID == LeadCoordinator.ID && !strings.HasPrefix(triggerPrompt, "@lead called you") {
+	if is2026Swarm && role.ID == LeadCoordinator.ID && !strings.HasPrefix(triggerPrompt, "@lead called you") && !strings.HasPrefix(triggerPrompt, "Collaborative Swarm Task") {
 		o.delegate2026SwarmTurns(channelID, threadID, agentMsg.Content, triggerPrompt)
 	}
 
@@ -931,7 +942,7 @@ func (o *Orchestrator) delegate2026SwarmTurns(channelID string, threadID string,
 
 		if callResearcher {
 			bgCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-			prompt := fmt.Sprintf("@lead called you in the 2026 swarm.\nCoordinator Directive: %s\nOriginal Request: %s\nProvide your terse 2-line assessment as Dev Researcher.", leadContent, userPrompt)
+			prompt := fmt.Sprintf("Collaborative Swarm Task for @researcher:\nOriginal User Request: %s\nCoordinator Directive: %s\nProvide your terse 2-3 line Dev Researcher assessment. Ground your analysis in relevant vector long-term memory, trade-offs, and benchmarks for this specific request. Avoid canned boilerplate.", userPrompt, leadContent)
 			_, _ = o.TriggerAgentResponse(bgCtx, channelID, threadID, DevResearcher, prompt)
 			cancel()
 			time.Sleep(800 * time.Millisecond)
@@ -939,7 +950,7 @@ func (o *Orchestrator) delegate2026SwarmTurns(channelID string, threadID string,
 
 		if callScribe {
 			bgCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-			prompt := fmt.Sprintf("@lead called you in the 2026 swarm.\nCoordinator Directive: %s\nOriginal Request: %s\nProvide your terse 2-line checkpoint as Staff Architect Scribe.", leadContent, userPrompt)
+			prompt := fmt.Sprintf("Collaborative Swarm Task for @scribe:\nOriginal User Request: %s\nCoordinator Directive: %s\nProvide your terse 2-3 line Staff Architect Scribe contribution. Define the architectural decision criteria, contracts, or constraints for this specific request. Do NOT invent fake compaction stats or repetitive slogans.", userPrompt, leadContent)
 			_, _ = o.TriggerAgentResponse(bgCtx, channelID, threadID, StaffArchitectScribe, prompt)
 			cancel()
 		}

@@ -218,7 +218,7 @@ class _ChatStreamPanelState extends State<ChatStreamPanel> {
                   const Icon(Icons.fork_right, size: 16, color: SepiaTheme.primary),
                   const SizedBox(width: 8),
                   Text(
-                    'THREAD SCRATCHPAD: ${widget.activeThreadId} (Sub-Task Context Isolation)',
+                    'THREAD SCRATCHPAD: ${widget.activeThreadId}',
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: SepiaTheme.primary),
                   ),
                   const Spacer(),

@@ -1257,4 +1257,135 @@ func Test2026SwarmLeadDelegation(t *testing.T) {
 	}
 }
 
+func TestSwarmVectorGroundedNonCannedResponses(t *testing.T) {
+	ctx := context.Background()
+	store := storage.NewInMemStore()
+	if err := store.ResetAndSeed(ctx); err != nil {
+		t.Fatalf("failed to seed store: %v", err)
+	}
+
+	var spans []storage.TelemetrySpan
+	var mu sync.Mutex
+	broadcaster := func(eventType string, payload interface{}) {
+		if eventType == "memory_telemetry" {
+			if s, ok := payload.(storage.TelemetrySpan); ok {
+				mu.Lock()
+				spans = append(spans, s)
+				mu.Unlock()
+			}
+		}
+	}
+
+	os.Setenv("GCP_ACCESS_TOKEN", "test-token-vector-grounding")
+	defer os.Unsetenv("GCP_ACCESS_TOKEN")
+
+	cfg := GeminiConfig{
+		ProjectID: "davenport-boutique",
+		Location:  "us-central1",
+		Model:     "gemini-3.8-flash",
+	}
+	gemini := NewGeminiClient(cfg)
+	gemini.SetTransport(roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		resp := map[string]interface{}{
+			"candidates": []map[string]interface{}{
+				{
+					"content": map[string]interface{}{
+						"parts": []map[string]interface{}{
+							{"text": "For the new product, we should build Cloud Run microservices with BigQuery vector search. @researcher benchmark inference latency, @scribe capture the schema ADR."},
+						},
+					},
+					"finishReason": "STOP",
+				},
+			},
+			"usageMetadata": map[string]interface{}{
+				"promptTokenCount":     180,
+				"candidatesTokenCount": 35,
+			},
+		}
+		body, _ := json.Marshal(resp)
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(bytes.NewReader(body)),
+			Header:     make(http.Header),
+		}, nil
+	}))
+	orch := NewOrchestrator(store, gemini, broadcaster)
+
+	userQuery := "lets build another product, what stack should we use?"
+
+	// 1. Verify user message auto-embedding
+	userMsg := storage.Message{
+		ID:         "msg-user-test-stack",
+		ChannelID:  "chan-product-launch",
+		SenderID:   "jason",
+		SenderName: "Jason Davenport",
+		SenderType: "user",
+		Content:    userQuery,
+	}
+	if err := store.SaveMessage(ctx, userMsg); err != nil {
+		t.Fatalf("failed to save user message: %v", err)
+	}
+	savedUserMsg, err := store.GetMessage(ctx, "msg-user-test-stack")
+	if err != nil || len(savedUserMsg.Embedding) != 16 {
+		t.Fatalf("expected 16-dim auto-embedding on user message, got %d (err: %v)", len(savedUserMsg.Embedding), err)
+	}
+
+	// 2. Trigger Lead Coordinator response
+	leadMsg, err := orch.TriggerAgentResponse(ctx, "chan-product-launch", "", LeadCoordinator, userQuery)
+	if err != nil {
+		t.Fatalf("TriggerAgentResponse failed: %v", err)
+	}
+
+	// Verify vector search telemetry span was fired with high similarity to product prototype
+	mu.Lock()
+	var vecSpan *storage.TelemetrySpan
+	for _, s := range spans {
+		if s.Action == "VECTOR_SEARCH" {
+			cp := s
+			vecSpan = &cp
+			break
+		}
+	}
+	mu.Unlock()
+
+	if vecSpan == nil {
+		t.Fatalf("expected VECTOR_SEARCH telemetry span for stack query")
+	}
+	sim, ok := vecSpan.Metrics["similarity"].(float32)
+	if !ok || sim < 0.85 {
+		t.Errorf("expected vector search similarity > 0.85 grounded in product launch memory, got %v", vecSpan.Metrics["similarity"])
+	}
+
+	// Verify vector hit intent tag exists on Lead's message
+	var hasVectorHitTag bool
+	for _, tag := range leadMsg.IntentTags {
+		if tag.Type == "vector_hit" {
+			hasVectorHitTag = true
+			if !strings.Contains(tag.Label, "Vector Hit:") {
+				t.Errorf("expected Vector Hit label, got %s", tag.Label)
+			}
+		}
+	}
+	if !hasVectorHitTag {
+		t.Errorf("expected vector_hit intent tag on Lead message")
+	}
+
+	// 3. Trigger Scribe on stack discussion and verify it does NOT produce fake compaction tag
+	scribeMsg, err := orch.TriggerAgentResponse(ctx, "chan-product-launch", "", StaffArchitectScribe, "Document architectural guidelines for new product stack")
+	if err != nil {
+		t.Fatalf("TriggerAgentResponse for Scribe failed: %v", err)
+	}
+	for _, tag := range scribeMsg.IntentTags {
+		if tag.Type == "compaction" {
+			t.Errorf("Scribe should not produce compaction tag on open architectural query, got: %v", tag)
+		}
+		if tag.Label == "Architecture Record Drafted" {
+			if tag.Type != "governance" {
+				t.Errorf("expected governance type for Architecture Record Drafted, got %s", tag.Type)
+			}
+		}
+	}
+}
+
+
 

@@ -82,26 +82,38 @@ class _ScopedRoomsViewState extends State<ScopedRoomsView> {
     _focusNode.requestFocus();
   }
 
+  bool _isRoomMatch(Channel c, String roomId) {
+    if (c.id == roomId) return true;
+    if (roomId == 'chan-2006-jabber-lobby' && (c.name.contains('lobby') || c.id.contains('lobby'))) return true;
+    if (roomId == 'chan-2006-jabber-eng' && (c.name.contains('eng') || c.id.contains('eng'))) return true;
+    if (roomId == 'chan-2006-jabber-billing' && (c.name.contains('billing') || c.id.contains('billing'))) return true;
+    return false;
+  }
+
   bool _isFencedMessage(Message msg) {
-    return msg.intentTags.any((t) =>
-        t.type == 'permission' ||
-        t.type == 'scoping' ||
-        t.label.toLowerCase().contains('fenc') ||
-        t.label.toLowerCase().contains('permiss') ||
-        t.label.toLowerCase().contains('isolat') ||
-        t.label.toLowerCase().contains('quarantin'));
+    return msg.intentTags.any((t) {
+      final label = t.label.toLowerCase();
+      if (label.contains('unfenc')) return false;
+      return t.type == 'permission' ||
+          label.contains('quarantin') ||
+          label.contains('domain fenced') ||
+          label.contains('anti-associative') ||
+          label.contains('firewall') ||
+          (t.type == 'scoping' && (label.contains('fenc') || label.contains('isolat')));
+    });
   }
 
   Message? get _quarantinedMessage {
     if (_selectedMessage != null && _isFencedMessage(_selectedMessage!)) {
       return _selectedMessage;
     }
+    final isBilling = _isRoomMatch(widget.selectedChannel, 'chan-2006-jabber-billing');
     for (final m in widget.messages.reversed) {
-      if (_isFencedMessage(m) ||
-          m.senderName.contains('Firewall') ||
+      final isFirewall = m.senderName.contains('Firewall') ||
           m.senderId == 'context-firewall' ||
           m.content.toLowerCase().contains('firewall') ||
-          m.content.toLowerCase().contains('quarantine')) {
+          m.content.toLowerCase().contains('quarantine');
+      if (isFirewall || (isBilling && _isFencedMessage(m))) {
         return m;
       }
     }
@@ -156,83 +168,86 @@ class _ScopedRoomsViewState extends State<ScopedRoomsView> {
         ),
       ),
       padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // Logo
-          const Padding(
-            padding: EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Icon(Icons.local_fire_department, color: Color(0xFFFF9933), size: 24),
-                SizedBox(width: 8),
-                Text(
-                  'ScopedRooms',
-                  style: TextStyle(
-                    fontFamily: 'serif',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'by 37signals (2006)',
-                  style: TextStyle(fontSize: 11, color: Color(0xFFB8CEB5), fontStyle: FontStyle.italic),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 24),
-
-          // Warm Tabs
-          _buildTabItem('Lobby', false),
-          _buildTabItem('Rooms', true),
-          _buildTabItem('Transcripts', false),
-          _buildTabItem('Files', false),
-
-          const Spacer(),
-
-          // Sound Toggle & User Info
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                InkWell(
-                  onTap: () => setState(() => _soundsEnabled = !_soundsEnabled),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF445441),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _soundsEnabled ? Icons.volume_up : Icons.volume_off,
-                          size: 13,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _soundsEnabled ? 'Sounds: On' : 'Sounds: Off',
-                          style: const TextStyle(fontSize: 11, color: Colors.white),
-                        ),
-                      ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Logo
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.local_fire_department, color: Color(0xFFFF9933), size: 24),
+                  SizedBox(width: 8),
+                  Text(
+                    'ScopedRooms',
+                    style: TextStyle(
+                      fontFamily: 'serif',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Jason Davenport',
-                  style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-              ],
+                  SizedBox(width: 8),
+                  Text(
+                    'by 37signals (2006)',
+                    style: TextStyle(fontSize: 11, color: Color(0xFFB8CEB5), fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            const SizedBox(width: 24),
+
+            // Warm Tabs
+            _buildTabItem('Lobby', false),
+            _buildTabItem('Rooms', true),
+            _buildTabItem('Transcripts', false),
+            _buildTabItem('Files', false),
+
+            const SizedBox(width: 24),
+
+            // Sound Toggle & User Info
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () => setState(() => _soundsEnabled = !_soundsEnabled),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF445441),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _soundsEnabled ? Icons.volume_up : Icons.volume_off,
+                            size: 13,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _soundsEnabled ? 'Sounds: On' : 'Sounds: Off',
+                            style: const TextStyle(fontSize: 11, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Jason Davenport',
+                    style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -318,8 +333,8 @@ class _ScopedRoomsViewState extends State<ScopedRoomsView> {
               children: [
                 // Preset Web 2.0 rooms
                 ...defaultRooms.map((r) {
-                  final isSelected = widget.selectedChannel.id == r['id'] ||
-                      (r['id'] == 'chan-2006-jabber-billing' && widget.selectedChannel.name.contains('billing'));
+                  final roomId = r['id'] as String;
+                  final isSelected = _isRoomMatch(widget.selectedChannel, roomId);
                   final isLocked = r['locked'] as bool;
 
                   return Padding(
@@ -329,7 +344,7 @@ class _ScopedRoomsViewState extends State<ScopedRoomsView> {
                       onTap: () {
                         // Find matching channel from seeded channels
                         final match = widget.channels.firstWhere(
-                          (c) => c.id == r['id'] || (r['id'] == 'chan-2006-jabber-billing' && c.name.contains('billing')),
+                          (c) => _isRoomMatch(c, roomId),
                           orElse: () => widget.selectedChannel,
                         );
                         if (match.id != widget.selectedChannel.id) {
@@ -472,10 +487,27 @@ class _ScopedRoomsViewState extends State<ScopedRoomsView> {
   // Center Transcript Area (Clean Web 2.0)
   // ==========================================
   Widget _buildTranscriptPanel() {
-    final isLocked = widget.selectedChannel.allowedRoles.isNotEmpty || widget.selectedChannel.name.contains('jabber');
-    final roomDisplayName = widget.selectedChannel.name.contains('jabber')
-        ? '#billing-confidential'
-        : '#${widget.selectedChannel.name}';
+    final isLobby = _isRoomMatch(widget.selectedChannel, 'chan-2006-jabber-lobby');
+    final isEng = _isRoomMatch(widget.selectedChannel, 'chan-2006-jabber-eng');
+    final isBilling = _isRoomMatch(widget.selectedChannel, 'chan-2006-jabber-billing');
+
+    final String roomDisplayName;
+    final bool isLocked;
+    if (isLobby) {
+      roomDisplayName = '#general-lobby';
+      isLocked = false;
+    } else if (isEng) {
+      roomDisplayName = '#engineering';
+      isLocked = false;
+    } else if (isBilling) {
+      roomDisplayName = '#billing-confidential';
+      isLocked = true;
+    } else {
+      roomDisplayName = widget.selectedChannel.name.startsWith('#')
+          ? widget.selectedChannel.name
+          : '#${widget.selectedChannel.name}';
+      isLocked = widget.selectedChannel.allowedRoles.isNotEmpty;
+    }
 
     return Container(
       color: scopedWhite,

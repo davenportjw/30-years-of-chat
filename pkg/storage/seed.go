@@ -760,10 +760,10 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 			Embedding:  vArch,
 			IntentTags: []IntentTag{
 				{
-					Label:       "Thread Branching: Scratchpad Isolation",
+					Label:       "Thread Branch: Active Scratchpad",
 					Type:        "context",
 					Color:       "amber",
-					Description: "Threads pattern: Isolated sub-agent scratchpad prevents main-channel token explosion.",
+					Description: "Threads pattern: Dedicated scratchpad keeps deep deliberation organized.",
 				},
 			},
 			CreatedAt: baseTime.Add(37 * time.Minute),
@@ -820,27 +820,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 			},
 			CreatedAt: baseTime.Add(42 * time.Minute),
 		},
-		{
-			ID:         "msg-rfc-th-03",
-			ChannelID:  chanThreads.ID,
-			ThreadID:   threadID,
-			SenderType: "agent",
-			SenderID:   "scribe-agent",
-			SenderName: "Staff Architect Scribe",
-			AvatarURL:  "https://api.dicebear.com/7.x/bottts/svg?seed=scribe",
-			Content:    "Thread consensus reached:\n1. Use synchronous transactional write with `idempotency_key`.\n2. Emit event-driven notifications only AFTER commit succeeds.\nThread concluded. Publishing synthesis back to #2017-threads-compaction root stream.",
-			TokenCount: 230,
-			Embedding:  vArch,
-			IntentTags: []IntentTag{
-				{
-					Label:       "Compacted by Scribe: -96% tokens",
-					Type:        "compaction",
-					Color:       "amber",
-					Description: "Compaction pattern: 9,800 raw thread tokens collapsed into 380-token state checkpoint.",
-				},
-			},
-			CreatedAt: baseTime.Add(45 * time.Minute),
-		},
+
 	}
 	for _, m := range rfcThreadMsgs {
 		if err := store.SaveMessage(ctx, m); err != nil {
@@ -854,7 +834,7 @@ func SeedTalkScenarios(ctx context.Context, store MemoryStore) error {
 		ChannelID:             chanThreads.ID,
 		ThreadID:              threadID,
 		CoveredStartMessageID: "msg-rfc-th-01",
-		CoveredEndMessageID:   "msg-rfc-th-03",
+		CoveredEndMessageID:   "msg-rfc-th-02",
 		CondensedState:        "CONSENSUS REACHED (RFC 042): Adopt synchronous 2PC with idempotency keys for financial mutations per ADR-019. Async outbox rejected due to webhook duplicate billing hazard.",
 		OriginalTokens:        9800,
 		CompactedTokens:       380,

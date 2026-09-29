@@ -258,8 +258,8 @@ func TestSeedDataIntegrity(t *testing.T) {
 	}
 
 	rfcThread, err := store.ListMessages(ctx, "chan-architecture-rfc", "thread-rfc-042", 50)
-	if err != nil || len(rfcThread) != 3 {
-		t.Fatalf("expected 3 thread RFC messages, got %d", len(rfcThread))
+	if err != nil || len(rfcThread) != 2 {
+		t.Fatalf("expected 2 thread RFC messages, got %d", len(rfcThread))
 	}
 
 	// Verify AIM buddy 1:1 channels
@@ -728,4 +728,92 @@ func TestCrystallizedBelief_GeneratedAt(t *testing.T) {
 		}
 	}
 }
+
+func TestGenerateMessageEmbedding(t *testing.T) {
+	// 1. Test product/stack query generates vector aligned with product prototype
+	prodQuery := "lets build another product, what stack should we use?"
+	vQuery := GenerateMessageEmbedding(prodQuery)
+
+	if len(vQuery) != 16 {
+		t.Fatalf("expected 16-dimensional embedding, got %d", len(vQuery))
+	}
+
+	protoProd := []float32{0.22, 0.15, 0.31, 0.25, 0.12, 0.28, 0.92, 0.88, 0.21, 0.18, 0.32, 0.24, 0.11, 0.29, 0.89, 0.85}
+	protoInc := []float32{0.82, 0.74, 0.21, 0.12, 0.91, 0.15, 0.05, 0.88, 0.79, 0.18, 0.11, 0.85, 0.14, 0.06, 0.83, 0.77}
+
+	simProd, _ := CosineSimilarity(vQuery, protoProd)
+	simInc, _ := CosineSimilarity(vQuery, protoInc)
+
+	if simProd < 0.85 {
+		t.Errorf("expected product query similarity > 0.85 to protoProd, got %f", simProd)
+	}
+	if simProd <= simInc {
+		t.Errorf("expected product query to be much closer to protoProd (%f) than protoInc (%f)", simProd, simInc)
+	}
+
+	// 2. Test incident query generates vector aligned with incident prototype
+	incQuery := "P0 incident outage auth proxy 504 timeout"
+	vIncQuery := GenerateMessageEmbedding(incQuery)
+	simIncToInc, _ := CosineSimilarity(vIncQuery, protoInc)
+	if simIncToInc < 0.85 {
+		t.Errorf("expected incident query similarity > 0.85 to protoInc, got %f", simIncToInc)
+	}
+
+	// 3. Test ADR / ledger query
+	adrQuery := "What did ADR-019 conclude about ledger consistency?"
+	vAdrQuery := GenerateMessageEmbedding(adrQuery)
+	protoDBArch := []float32{0.18, 0.29, 0.82, 0.87, 0.21, 0.81, 0.28, 0.21, 0.27, 0.84, 0.89, 0.19, 0.82, 0.31, 0.22, 0.32}
+	simAdr, _ := CosineSimilarity(vAdrQuery, protoDBArch)
+	if simAdr < 0.85 {
+		t.Errorf("expected ADR query similarity > 0.85 to protoDBArch, got %f", simAdr)
+	}
+
+	// 4. Test vector search retrieval on seeded data
+	ctx := context.Background()
+	store := NewInMemStore()
+	if err := store.ResetAndSeed(ctx); err != nil {
+		t.Fatalf("failed to seed store: %v", err)
+	}
+
+	hits, err := store.SearchVectors(ctx, "chan-product-launch", vQuery, 2)
+	if err != nil {
+		t.Fatalf("SearchVectors failed: %v", err)
+	}
+	if len(hits) == 0 {
+		t.Fatalf("expected at least 1 vector hit in chan-product-launch")
+	}
+	if hits[0].Similarity < 0.85 {
+		t.Errorf("expected top hit in product launch to have similarity > 0.85, got %f", hits[0].Similarity)
+	}
+	if !strings.Contains(hits[0].Message.Content, "GA Launch Checklist") && !strings.Contains(hits[0].Message.Content, "Security Audit") {
+		t.Errorf("expected top hit to be product launch checklist or security audit, got: %s", hits[0].Message.Content)
+	}
+}
+
+func TestAutoEmbeddingOnSave(t *testing.T) {
+	ctx := context.Background()
+	store := NewInMemStore()
+
+	ch := Channel{ID: "chan-auto-embed", Name: "auto-embed", CreatedAt: time.Now()}
+	_ = store.CreateChannel(ctx, ch)
+
+	msg := Message{
+		ID:        "msg-auto-1",
+		ChannelID: ch.ID,
+		Content:   "Deploying cloud run microservices with BigQuery vector search",
+	}
+
+	if err := store.SaveMessage(ctx, msg); err != nil {
+		t.Fatalf("SaveMessage failed: %v", err)
+	}
+
+	saved, err := store.GetMessage(ctx, "msg-auto-1")
+	if err != nil {
+		t.Fatalf("GetMessage failed: %v", err)
+	}
+	if len(saved.Embedding) != 16 {
+		t.Fatalf("expected auto-populated 16-dim embedding, got %d", len(saved.Embedding))
+	}
+}
+
 

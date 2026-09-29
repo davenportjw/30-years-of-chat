@@ -48,6 +48,7 @@ class _ThreadsViewState extends State<ThreadsView> {
   final ScrollController _threadScrollCtrl = ScrollController();
 
   bool _showCompactionDetails = true;
+  bool _isSummarizing = false;
   double _threadWidth = 430.0;
   bool _isMaximized = false;
   bool _isDragging = false;
@@ -139,11 +140,25 @@ class _ThreadsViewState extends State<ThreadsView> {
     widget.onSendMessage(text, threadId: widget.activeThreadId);
   }
 
+  int _calculateTokens(Message m) {
+    if (m.tokenCount > 0) return m.tokenCount;
+    if (m.metadata != null) {
+      final cand = m.metadata!['candidate_tokens'];
+      if (cand is int && cand > 0) return cand;
+      final prompt = m.metadata!['prompt_tokens'];
+      if (prompt is int && prompt > 0) return prompt;
+    }
+    final wordList = m.content.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+    final count = (wordList.length * 1.3).ceil();
+    return count > 0 ? count : 1;
+  }
+
   void _triggerScribeSummarize() {
-    widget.onSendMessage('@scribe summarize the thread investigation', threadId: widget.activeThreadId);
     setState(() {
+      _isSummarizing = true;
       _showCompactionDetails = true;
     });
+    widget.onSendMessage('@scribe summarize the thread investigation', threadId: widget.activeThreadId);
   }
 
   void _insertMainPrompt(String text) {
@@ -185,7 +200,7 @@ class _ThreadsViewState extends State<ThreadsView> {
         senderType: 'system',
         senderId: 'sys',
         senderName: 'Thread Root',
-        content: 'Sub-task reasoning thread initialized.',
+        content: 'Thread reasoning initialized.',
         tokenCount: 40,
         intentTags: [],
         createdAt: DateTime.now(),
@@ -234,29 +249,7 @@ class _ThreadsViewState extends State<ThreadsView> {
                   ),
                 ),
 
-                // Sub-task isolation pill
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF22262B),
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: const Color(0xFF383F45)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.fork_right, size: 13, color: Color(0xFF55FF55)),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'Thread Isolation • -96% Tokens',
-                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+
 
                 // Channels Section
                 Expanded(
@@ -504,10 +497,16 @@ class _ThreadsViewState extends State<ThreadsView> {
                             final hasThread = msg.id == 'msg-rfc-root-02' ||
                                 msg.intentTags.any((t) => t.type == 'context' && t.label.contains('Thread'));
 
+                            final threadReplies = widget.messages.where((m) =>
+                              m.threadId == msg.id || (msg.id == 'msg-rfc-root-02' && m.threadId == 'thread-rfc-042')
+                            ).length;
+                            final totalReplies = threadReplies > 0 ? threadReplies : (widget.threadMessages.isNotEmpty ? widget.threadMessages.length : 2);
+
                             return _MainStreamMessageItem(
                               message: msg,
                               hasThread: hasThread,
                               activeThreadId: widget.activeThreadId,
+                              replyCount: totalReplies,
                               onOpenThread: () => widget.onOpenThread('thread-rfc-042'),
                               onSelect: widget.onSelectMessage != null ? () => widget.onSelectMessage!(msg) : null,
                             );
@@ -709,6 +708,51 @@ class _ThreadsViewState extends State<ThreadsView> {
     required List<Message> threadMessages,
     required Color threadBorder,
   }) {
+    final bool isScribeTyping = widget.typingAgentName?.toLowerCase().contains('scribe') ?? false;
+
+    // Find the latest Scribe summary message (if any)
+    Message? latestScribe;
+    for (int i = threadMessages.length - 1; i >= 0; i--) {
+      final m = threadMessages[i];
+      if (m.senderId == 'scribe-agent' || m.intentTags.any((t) => t.type == 'compaction')) {
+        latestScribe = m;
+        break;
+      }
+    }
+
+    // Deliberation turns: all messages in thread except the latest Scribe summary
+    final deliberationMsgs = threadMessages.where((m) =>
+      m != latestScribe &&
+      m.senderId != 'scribe-agent' &&
+      !m.intentTags.any((t) => t.type == 'compaction')
+    ).toList();
+
+    // Sum deliberation turns in thread plus root message
+    final int rawTurnsTokens = deliberationMsgs.fold(0, (sum, m) => sum + _calculateTokens(m));
+    final int rootTokens = _calculateTokens(threadRoot);
+    final int totalRawTokens = rawTurnsTokens + (deliberationMsgs.isNotEmpty ? rootTokens : 0);
+    final int displayRawTokens = totalRawTokens > 0 ? totalRawTokens : (rootTokens > 0 ? rootTokens : 50);
+
+    final bool isSummarized = latestScribe != null;
+    final int compactedTokens = isSummarized ? _calculateTokens(latestScribe) : 0;
+
+    // Dynamic compaction ratio
+    final double rawBenchmark = displayRawTokens > compactedTokens
+        ? displayRawTokens.toDouble()
+        : (compactedTokens > 0 ? (compactedTokens + 100).toDouble() : 100.0);
+    final double compactionRatio = isSummarized && rawBenchmark > compactedTokens
+        ? ((rawBenchmark - compactedTokens) / rawBenchmark).clamp(0.01, 0.99)
+        : 0.0;
+    final int percentCompacted = (compactionRatio * 100).round();
+
+    final bool currentlySummarizing = _isSummarizing || isScribeTyping;
+
+    final String consensusText = isSummarized
+        ? latestScribe.content
+        : (currentlySummarizing
+            ? 'Scribe agent is generating consensus compaction from $displayRawTokens raw thread tokens...'
+            : 'Thread active with $displayRawTokens raw tokens. Click "@scribe summarize thread" to compact into a consensus checkpoint.');
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFFAF9F6),
@@ -760,7 +804,7 @@ class _ThreadsViewState extends State<ThreadsView> {
                         ],
                       ),
                       Text(
-                        'Sub-Task Isolation: ${widget.activeThreadId}',
+                        'Thread: ${widget.activeThreadId}',
                         style: const TextStyle(fontSize: 11, color: Color(0xFF616061)),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -870,10 +914,16 @@ class _ThreadsViewState extends State<ThreadsView> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     ElevatedButton.icon(
-                      icon: const Icon(Icons.auto_awesome, size: 14),
-                      label: const Text(
-                        '@scribe summarize thread',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      icon: currentlySummarizing
+                          ? const SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.auto_awesome, size: 14),
+                      label: Text(
+                        currentlySummarizing ? 'Compacting Thread...' : '@scribe summarize thread',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: SepiaTheme.primary,
@@ -881,29 +931,37 @@ class _ThreadsViewState extends State<ThreadsView> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       ),
-                      onPressed: _triggerScribeSummarize,
+                      onPressed: currentlySummarizing ? null : _triggerScribeSummarize,
                     ),
                     InkWell(
                       onTap: () => setState(() => _showCompactionDetails = !_showCompactionDetails),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
+                          color: isSummarized ? Colors.green.shade50 : Colors.amber.shade50,
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.green.shade400),
+                          border: Border.all(color: isSummarized ? Colors.green.shade400 : Colors.amber.shade400),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
-                              '-96% Compaction',
-                              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                            Text(
+                              isSummarized
+                                  ? '-$percentCompacted% Compaction'
+                                  : (currentlySummarizing
+                                      ? 'Compacting...'
+                                      : 'Live: $displayRawTokens tokens'),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: isSummarized ? const Color(0xFF2E7D32) : Colors.amber.shade900,
+                              ),
                             ),
                             const SizedBox(width: 4),
                             Icon(
                               _showCompactionDetails ? Icons.expand_less : Icons.expand_more,
                               size: 13,
-                              color: const Color(0xFF2E7D32),
+                              color: isSummarized ? const Color(0xFF2E7D32) : Colors.amber.shade900,
                             ),
                           ],
                         ),
@@ -925,30 +983,44 @@ class _ThreadsViewState extends State<ThreadsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Expanded(
+                            const Expanded(
                               child: Text('Raw Thread Turns:', style: TextStyle(fontSize: 11, color: Color(0xFF616061))),
                             ),
-                            Text('9,800 tokens (Unrolled)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                            Text(
+                              '$displayRawTokens tokens (Unrolled)',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 3),
-                        const Row(
+                        Row(
                           children: [
-                            Expanded(
+                            const Expanded(
                               child: Text('Scribe Compacted State:', style: TextStyle(fontSize: 11, color: Color(0xFF616061))),
                             ),
-                            Text('380 tokens (Rollup)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green)),
+                            Text(
+                              isSummarized
+                                  ? '$compactedTokens tokens (Rollup)'
+                                  : (currentlySummarizing ? 'Synthesizing...' : 'Pending Rollup'),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: isSummarized ? Colors.green : const Color(0xFF888888),
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 6),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(3),
                           child: LinearProgressIndicator(
-                            value: 380 / 9800,
-                            backgroundColor: Colors.red.shade100,
-                            color: Colors.green.shade600,
+                            value: isSummarized
+                                ? (compactedTokens / (rawBenchmark > 0 ? rawBenchmark : 1.0)).clamp(0.01, 1.0)
+                                : (currentlySummarizing ? null : 1.0),
+                            backgroundColor: isSummarized ? Colors.red.shade100 : Colors.grey.shade200,
+                            color: isSummarized ? Colors.green.shade600 : Colors.amber.shade600,
                             minHeight: 6,
                           ),
                         ),
@@ -958,9 +1030,13 @@ class _ThreadsViewState extends State<ThreadsView> {
                           style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: SepiaTheme.primary),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
-                          'CONSENSUS (RFC 042): Adopt synchronous 2PC with idempotency keys for financial ledger per ADR-019. Async outbox rejected.',
-                          style: TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: Color(0xFF333333)),
+                        Text(
+                          consensusText,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontStyle: isSummarized ? FontStyle.normal : FontStyle.italic,
+                            color: const Color(0xFF333333),
+                          ),
                         ),
                       ],
                     ),
@@ -1039,7 +1115,7 @@ class _ThreadsViewState extends State<ThreadsView> {
             child: threadMessages.isEmpty
                 ? const Center(
                     child: Text(
-                      'Sub-task scratchpad active.\nNo thread turns yet; post a reply below.',
+                      'Thread active.\nNo thread turns yet; post a reply below.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: Color(0xFF616061)),
                     ),
@@ -1134,6 +1210,7 @@ class _MainStreamMessageItem extends StatelessWidget {
   final String? activeThreadId;
   final VoidCallback onOpenThread;
   final VoidCallback? onSelect;
+  final int replyCount;
 
   const _MainStreamMessageItem({
     required this.message,
@@ -1141,6 +1218,7 @@ class _MainStreamMessageItem extends StatelessWidget {
     required this.activeThreadId,
     required this.onOpenThread,
     this.onSelect,
+    this.replyCount = 0,
   });
 
   @override
@@ -1267,7 +1345,9 @@ class _MainStreamMessageItem extends StatelessWidget {
                           Text(
                             isActiveThread
                                 ? 'Thread Scratchpad Open (Active Focus)'
-                                : 'View Thread Scratchpad (3 replies • Sub-task isolated)',
+                                : (replyCount > 0
+                                    ? 'View Thread Scratchpad ($replyCount ${replyCount == 1 ? 'reply' : 'replies'})'
+                                    : 'View Thread Scratchpad'),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,

@@ -841,7 +841,7 @@ LIMIT 3;''',
       year: 2017,
       title: '2017: Threads & Scribe Compaction (Discord Forums & Threaded Chat)',
       cognitiveConcept: 'Subagent Scratchpads & Hierarchical Compaction',
-      summary: 'Sub-task context isolation via threaded branching and Scribe state compaction. Specialist agents deliberate in isolated thread scratchpads, which a Scribe condenses into structured checkpoints for the main channel.',
+      summary: 'Thread branching and Scribe state compaction. Specialist agents deliberate in dedicated thread scratchpads, which a Scribe condenses into structured checkpoints for the main channel.',
       primaryCodeSnippet: '''// ScribeCompactor compresses thread scratchpad dialogue into structured state summaries.
 type ScribeCompactor struct {
 	gemini *gemini.Client
@@ -897,7 +897,7 @@ CREATE INDEX idx_thread_summaries_lookup ON thread_compaction_summaries(channel_
         ArchitecturePipelineStep(
           stepNumber: 1,
           badgeLabel: 'STEP 1 • THREAD SCRATCHPAD BRANCHING',
-          flowTag: '→ Isolated Thread Scratchpad',
+          flowTag: '→ Thread Scratchpad',
           iconName: 'alt_route',
           title: 'Thread Scratchpad Branching & Context Scoping',
           techStack: 'Go / Thread Router / Relational DB',
@@ -935,7 +935,7 @@ store.SaveMessage(ctx, agentResponse)''',
           iconName: 'compress',
           title: 'Hierarchical State Rollup & Scribe Compaction',
           techStack: 'Gemini 3.8 Flash / Scribe Agent / State Rollup',
-          metaBadges: ['Scribe Compaction', 'State Rollup', 'Token Reduction'],
+          metaBadges: ['Scribe Compaction', 'State Rollup', 'Dynamic Rollup'],
           description: 'Prompts Gemini 3.8 Flash via a dedicated Scribe agent to distill multi-turn thread dialogue into a structured summary.',
           sampleCode: '''summaryPrompt := fmt.Sprintf(
     "Distill thread into 4 bullets: (1) Root Cause, (2) Action Taken, " +
