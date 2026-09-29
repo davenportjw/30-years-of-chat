@@ -1,0 +1,174 @@
+# ==============================================================================
+# Security & Zero-Secrets Boundary (Never commit private keys or credentials)
+# ==============================================================================
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.template
+*.env
+
+# Certificates, Keys, and Keystores
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.p12
+*.cer
+*.crt
+*.der
+*.jks
+*.keystore
+
+# SSH Keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+id_ecdsa
+id_ecdsa.pub
+id_dsa
+id_dsa.pub
+
+# Google Cloud & Application Credentials
+*credentials*.json
+*credential*.json
+*service_account*.json
+*service-account*.json
+*serviceaccount*.json
+client_secret*.json
+client_secrets*.json
+gcp-key*.json
+key.json
+*.token
+*.tokens
+token.json
+tokens.json
+auth.json
+oauth.json
+oauth2.json
+access_tokens.db
+credentials.db
+.gcloud/
+legacy_credentials/
+
+# Secrets, passwords, and tokens
+*.secret
+*.secrets
+auth_token*
+
+# Terraform & Cloud Infrastructure
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+
+# ==============================================================================
+# Go Binaries & Build Artifacts
+# ==============================================================================
+/agents-of-chat
+/server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+c.out
+coverage.txt
+
+# ==============================================================================
+# Python & UV Environments / Caches
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.venv/
+venv/
+ENV/
+env/
+dist/
+build/
+*.egg-info/
+.eggs/
+.coverage
+.coverage.*
+htmlcov/
+
+# ==============================================================================
+# Flutter / Dart Frontend
+# ==============================================================================
+frontend/.dart_tool/
+frontend/.idea/
+frontend/build/
+frontend/.pub-cache/
+frontend/.pub/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+.dart_tool/
+.pub-cache/
+.pub/
+build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+frontend/android/app/debug/
+frontend/android/app/profile/
+frontend/android/app/release/
+*.symbols
+*.map.json
+
+# ==============================================================================
+# Operating System & Filesystem
+# ==============================================================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+
+# ==============================================================================
+# IDEs and Editors
+# ==============================================================================
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+*.swp
+*.swo
+.#*
+
+# ==============================================================================
+# Logs & Diagnostic Dumps
+# ==============================================================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

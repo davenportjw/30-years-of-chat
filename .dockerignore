@@ -1,0 +1,11 @@
+.git
+.gitignore
+/server
+/agents-of-chat
+frontend/.dart_tool
+frontend/.idea
+frontend/android
+frontend/ios
+frontend/linux
+frontend/macos
+frontend/windows

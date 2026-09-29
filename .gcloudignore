@@ -1,0 +1,16 @@
+.gcloudignore
+.git
+.gitignore
+/server
+/agents-of-chat
+frontend/.dart_tool/
+frontend/.idea/
+frontend/android/
+frontend/ios/
+frontend/linux/
+frontend/macos/
+frontend/windows/
+frontend/build/app/
+frontend/build/unit_test_assets/
+frontend/build/web_tool/
+frontend/build/test_cache/
